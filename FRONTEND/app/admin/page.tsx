@@ -113,30 +113,30 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => (window.location.href = "/")}>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Button variant="ghost" onClick={() => (window.location.href = "/")} size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Volver
               </Button>
               <div className="flex items-center space-x-2">
-                <Shield className="h-8 w-8 text-primary" />
-                <h1 className="text-2xl font-bold text-foreground">Panel de Administración</h1>
+                <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <h1 className="text-lg sm:text-2xl font-bold text-foreground">Panel de Administración</h1>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline" className="text-primary">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="text-primary text-xs">
                   <Network className="h-3 w-3 mr-1" />
                   Lisk Mainnet
                 </Badge>
-                <Badge variant="outline" className="text-green-600">
+                <Badge variant="outline" className="text-green-600 text-xs">
                   Admin Verificado
                 </Badge>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="text-right">
-                  <div className="text-sm font-medium">{ensName}</div>
+                <div className="text-left sm:text-right">
+                  <div className="text-sm font-medium truncate max-w-[150px] sm:max-w-none">{ensName}</div>
                   <div className="text-xs text-muted-foreground">
                     {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                   </div>
@@ -147,40 +147,40 @@ export default function AdminPanel() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="space-y-6 sm:space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
                 <Network className="h-5 w-5" />
                 <span>Estado de la Infraestructura Blockchain</span>
               </CardTitle>
-              <CardDescription>Monitoreo en tiempo real de los componentes descentralizados</CardDescription>
+              <CardDescription className="text-sm">Monitoreo en tiempo real de los componentes descentralizados</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                  <Network className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <div className="font-semibold text-green-700 dark:text-green-300">Lisk Blockchain</div>
-                  <div className="text-sm text-green-600 dark:text-green-400">Conectado</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="text-center p-3 sm:p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                  <Network className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 mx-auto mb-2" />
+                  <div className="font-semibold text-green-700 dark:text-green-300 text-sm sm:text-base">Lisk Blockchain</div>
+                  <div className="text-xs sm:text-sm text-green-600 dark:text-green-400">Conectado</div>
                   <div className="text-xs text-muted-foreground mt-1">Block: #2,847,392</div>
                 </div>
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <Lock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                  <div className="font-semibold text-blue-700 dark:text-blue-300">Zama Encryption</div>
-                  <div className="text-sm text-blue-600 dark:text-blue-400">Activo</div>
+                <div className="text-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <Lock className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 mx-auto mb-2" />
+                  <div className="font-semibold text-blue-700 dark:text-blue-300 text-sm sm:text-base">Zama Encryption</div>
+                  <div className="text-xs sm:text-sm text-blue-600 dark:text-blue-400">Activo</div>
                   <div className="text-xs text-muted-foreground mt-1">FHE Ready</div>
                 </div>
-                <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <Key className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                  <div className="font-semibold text-purple-700 dark:text-purple-300">ZK Proofs</div>
-                  <div className="text-sm text-purple-600 dark:text-purple-400">Operacional</div>
+                <div className="text-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <Key className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mx-auto mb-2" />
+                  <div className="font-semibold text-purple-700 dark:text-purple-300 text-sm sm:text-base">ZK Proofs</div>
+                  <div className="text-xs sm:text-sm text-purple-600 dark:text-purple-400">Operacional</div>
                   <div className="text-xs text-muted-foreground mt-1">Circuit: v2.1</div>
                 </div>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
-                  <Zap className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                  <div className="font-semibold text-orange-700 dark:text-orange-300">ENS Registry</div>
-                  <div className="text-sm text-orange-600 dark:text-orange-400">Sincronizado</div>
+                <div className="text-center p-3 sm:p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+                  <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600 mx-auto mb-2" />
+                  <div className="font-semibold text-orange-700 dark:text-orange-300 text-sm sm:text-base">ENS Registry</div>
+                  <div className="text-xs sm:text-sm text-orange-600 dark:text-orange-400">Sincronizado</div>
                   <div className="text-xs text-muted-foreground mt-1">1,247 identidades</div>
                 </div>
               </div>
@@ -189,39 +189,40 @@ export default function AdminPanel() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
                 <Plus className="h-5 w-5" />
                 <span>Crear Nueva Elección</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 Despliega una nueva votación en Lisk blockchain con encriptación Zama y ZK proofs
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6">
               <Alert>
                 <Network className="h-4 w-4" />
-                <AlertDescription>
+                <AlertDescription className="text-sm">
                   La elección se desplegará como smart contract en Lisk blockchain con verificación ZK automática
                 </AlertDescription>
               </Alert>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Título de la Elección</Label>
+                  <Label htmlFor="title" className="text-sm">Título de la Elección</Label>
                   <Input
                     id="title"
                     placeholder="Ej: Elección de Presidente DAO 2024"
                     value={newElection.title}
                     onChange={(e) => setNewElection((prev) => ({ ...prev, title: e.target.value }))}
+                    className="text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="type">Tipo de Votación</Label>
+                  <Label htmlFor="type" className="text-sm">Tipo de Votación</Label>
                   <Select
                     value={newElection.type}
                     onValueChange={(value) => setNewElection((prev) => ({ ...prev, type: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue placeholder="Seleccionar tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -234,39 +235,42 @@ export default function AdminPanel() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descripción</Label>
+                <Label htmlFor="description" className="text-sm">Descripción</Label>
                 <Textarea
                   id="description"
                   placeholder="Describe el propósito y contexto de esta elección..."
                   rows={3}
                   value={newElection.description}
                   onChange={(e) => setNewElection((prev) => ({ ...prev, description: e.target.value }))}
+                  className="text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="start">Fecha de Inicio</Label>
+                  <Label htmlFor="start" className="text-sm">Fecha de Inicio</Label>
                   <Input
                     id="start"
                     type="datetime-local"
                     value={newElection.startDate}
                     onChange={(e) => setNewElection((prev) => ({ ...prev, startDate: e.target.value }))}
+                    className="text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="end">Fecha de Fin</Label>
+                  <Label htmlFor="end" className="text-sm">Fecha de Fin</Label>
                   <Input
                     id="end"
                     type="datetime-local"
                     value={newElection.endDate}
                     onChange={(e) => setNewElection((prev) => ({ ...prev, endDate: e.target.value }))}
+                    className="text-sm"
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <Label>Candidatos/Opciones</Label>
+                <Label className="text-sm">Candidatos/Opciones</Label>
                 <div className="space-y-2">
                   {newElection.candidates.map((candidate, index) => (
                     <Input
@@ -274,16 +278,17 @@ export default function AdminPanel() {
                       placeholder={`Candidato ${index + 1}`}
                       value={candidate}
                       onChange={(e) => updateCandidate(index, e.target.value)}
+                      className="text-sm"
                     />
                   ))}
-                  <Button variant="outline" size="sm" onClick={addCandidate}>
+                  <Button variant="outline" size="sm" onClick={addCandidate} className="text-sm">
                     <Plus className="h-4 w-4 mr-2" />
                     Agregar Candidato
                   </Button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-3 sm:p-4 bg-muted rounded-lg">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Configuración Blockchain</Label>
                   <div className="text-xs text-muted-foreground space-y-1">
@@ -302,7 +307,7 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              <Button onClick={createElection} className="w-full" size="lg">
+              <Button onClick={createElection} className="w-full text-sm sm:text-base" size="lg">
                 <Network className="h-4 w-4 mr-2" />
                 Desplegar Elección en Lisk Blockchain
               </Button>
@@ -311,36 +316,36 @@ export default function AdminPanel() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
                 <Users className="h-5 w-5" />
                 <span>Gestión de Votantes</span>
               </CardTitle>
-              <CardDescription>Administra la elegibilidad y verificación de identidades ENS</CardDescription>
+              <CardDescription className="text-sm">Administra la elegibilidad y verificación de identidades ENS</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold text-primary">1,247</div>
-                  <div className="text-sm text-muted-foreground">Identidades ENS</div>
+            <CardContent className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center p-3 sm:p-4 bg-muted rounded-lg">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">1,247</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Identidades ENS</div>
                   <div className="text-xs text-muted-foreground mt-1">Verificadas</div>
                 </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold text-accent">892</div>
-                  <div className="text-sm text-muted-foreground">Votos ZK</div>
+                <div className="text-center p-3 sm:p-4 bg-muted rounded-lg">
+                  <div className="text-xl sm:text-2xl font-bold text-accent">892</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Votos ZK</div>
                   <div className="text-xs text-muted-foreground mt-1">Procesados</div>
                 </div>
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold text-foreground">71%</div>
-                  <div className="text-sm text-muted-foreground">Participación</div>
+                <div className="text-center p-3 sm:p-4 bg-muted rounded-lg">
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">71%</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Participación</div>
                   <div className="text-xs text-muted-foreground mt-1">Tiempo real</div>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="eligibility">Criterios de Elegibilidad</Label>
+                  <Label htmlFor="eligibility" className="text-sm">Criterios de Elegibilidad</Label>
                   <Select>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue placeholder="Seleccionar criterio" />
                     </SelectTrigger>
                     <SelectContent>
@@ -352,12 +357,12 @@ export default function AdminPanel() {
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button variant="outline" className="bg-transparent">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Button variant="outline" className="bg-transparent text-sm">
                     <Zap className="h-4 w-4 mr-2" />
                     Sincronizar ENS Registry
                   </Button>
-                  <Button variant="outline" className="bg-transparent">
+                  <Button variant="outline" className="bg-transparent text-sm">
                     <Key className="h-4 w-4 mr-2" />
                     Exportar Claves ZK
                   </Button>

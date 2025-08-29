@@ -174,21 +174,17 @@ export default function BlockchainVotingSystem() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Shield className="h-8 w-8 text-primary" />
-                <h1 className="text-2xl font-bold text-foreground">VoteCryp</h1>
-              </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-2">
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">VoteCryp</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Wallet className="h-4 w-4 text-primary" />
-                <div className="text-right">
-                  <div className="text-sm font-medium">{ensName}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-                  </div>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Wallet className="h-4 w-4 text-primary" />
+              <div className="text-right">
+                <div className="text-sm font-medium truncate max-w-[120px] sm:max-w-none">{ensName}</div>
+                <div className="text-xs text-muted-foreground">
+                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                 </div>
               </div>
             </div>
@@ -196,13 +192,13 @@ export default function BlockchainVotingSystem() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* Voting Portal */}
-          <div className="space-y-6">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">Portal de Votación</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="text-center space-y-2 sm:space-y-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Portal de Votación</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto px-4">
                 Voto seguro, transparente y accesible!
               </p>
             </div>
@@ -215,21 +211,21 @@ export default function BlockchainVotingSystem() {
             </Alert>
 
             <div className="grid gap-4">
-              <h3 className="text-xl font-semibold">Elecciones Activas</h3>
+              <h3 className="text-lg sm:text-xl font-semibold px-2">Elecciones Activas</h3>
               {mockElections
                 .filter((e) => e.status === "active")
                 .map((election) => (
                   <Card key={election.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg">{election.title}</CardTitle>
-                          <CardDescription>{election.description}</CardDescription>
+                    <CardHeader className="pb-4">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base sm:text-lg break-words">{election.title}</CardTitle>
+                          <CardDescription className="text-sm break-words">{election.description}</CardDescription>
                         </div>
-                        <div className="flex flex-col items-end space-y-2">
-                          <Badge variant="secondary">Activa</Badge>
+                        <div className="flex flex-row sm:flex-col items-start sm:items-end gap-2">
+                          <Badge variant="secondary" className="text-xs">Activa</Badge>
                           {election.zkProofVerified && (
-                            <Badge variant="outline" className="text-green-600">
+                            <Badge variant="outline" className="text-green-600 text-xs">
                               <Key className="h-3 w-3 mr-1" />
                               ZK Verified
                             </Badge>
@@ -238,8 +234,8 @@ export default function BlockchainVotingSystem() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>Lisk TX: {election.liskTxHash.slice(0, 10)}...</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-2 text-sm text-muted-foreground">
+                        <span className="break-all sm:break-normal">Lisk TX: {election.liskTxHash.slice(0, 10)}...</span>
                         <span>Votos: {election.totalVotes}</span>
                       </div>
 
@@ -250,25 +246,27 @@ export default function BlockchainVotingSystem() {
                         </Alert>
                       ) : selectedElection === election.id ? (
                         <div className="space-y-3 pt-4 border-t">
-                          <h4 className="font-medium">Selecciona tu opción:</h4>
+                          <h4 className="font-medium text-sm sm:text-base">Selecciona tu opción:</h4>
                           {zkProofGenerating && (
                             <Alert>
                               <Zap className="h-4 w-4 animate-spin" />
-                              <AlertDescription>Generando prueba Zero Knowledge...</AlertDescription>
+                              <AlertDescription className="text-sm">Generando prueba Zero Knowledge...</AlertDescription>
                             </Alert>
                           )}
-                          {election.candidates.map((candidate, index) => (
-                            <Button
-                              key={index}
-                              variant="outline"
-                              className="w-full justify-start bg-transparent"
-                              onClick={() => castVote(election.id, index)}
-                              disabled={zkProofGenerating}
-                            >
-                              <Lock className="h-4 w-4 mr-2" />
-                              {candidate.name}
-                            </Button>
-                          ))}
+                          <div className="space-y-2">
+                            {election.candidates.map((candidate, index) => (
+                              <Button
+                                key={index}
+                                variant="outline"
+                                className="w-full justify-start bg-transparent text-left text-sm sm:text-base"
+                                onClick={() => castVote(election.id, index)}
+                                disabled={zkProofGenerating}
+                              >
+                                <Lock className="h-4 w-4 mr-2 flex-shrink-0" />
+                                <span className="truncate">{candidate.name}</span>
+                              </Button>
+                            ))}
+                          </div>
                         </div>
                       ) : (
                         <Button onClick={() => setSelectedElection(election.id)} className="w-full">
@@ -283,50 +281,50 @@ export default function BlockchainVotingSystem() {
           </div>
 
           {/* Results Dashboard for Voters */}
-          <div className="space-y-6">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">Resultados en Tiempo Real</h2>
+          <div className="space-y-4 sm:space-y-6">
+            <div className="text-center space-y-2 sm:space-y-4 px-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Resultados en Tiempo Real</h2>
               <p className="text-muted-foreground">Resultados transparentes verificables en Lisk blockchain</p>
             </div>
 
-            <div className="grid gap-6">
+            <div className="grid gap-4 sm:gap-6">
               {mockElections.map((election) => (
                 <Card key={election.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-xl">{election.title}</CardTitle>
-                        <CardDescription>{election.description}</CardDescription>
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg sm:text-xl break-words">{election.title}</CardTitle>
+                        <CardDescription className="text-sm break-words">{election.description}</CardDescription>
                       </div>
-                      <Badge variant={election.status === "active" ? "secondary" : "outline"}>
+                      <Badge variant={election.status === "active" ? "secondary" : "outline"} className="self-start text-xs">
                         {election.status === "active" ? "En Curso" : "Finalizada"}
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <CardContent className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="text-center p-4 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold text-primary">{election.totalVotes}</div>
-                        <div className="text-sm text-muted-foreground">Votos Totales</div>
+                        <div className="text-xl sm:text-2xl font-bold text-primary">{election.totalVotes}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">Votos Totales</div>
                       </div>
                       <div className="text-center p-4 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">100%</div>
-                        <div className="text-sm text-muted-foreground">Verificación ZK</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">100%</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">Verificación ZK</div>
                       </div>
                     </div>
 
                     <div className="space-y-4">
-                      <h4 className="font-semibold flex items-center">
+                      <h4 className="font-semibold flex items-center text-sm sm:text-base">
                         <BarChart3 className="h-4 w-4 mr-2" />
                         Resultados por Candidato
                       </h4>
                       {election.candidates.map((candidate, index) => (
                         <div key={index} className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">{candidate.name}</span>
-                            <div className="text-right">
-                              <span className="font-bold text-primary">{candidate.votes}</span>
-                              <span className="text-sm text-muted-foreground ml-2">({candidate.percentage}%)</span>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                            <span className="font-medium text-sm sm:text-base truncate">{candidate.name}</span>
+                            <div className="text-left sm:text-right">
+                              <span className="font-bold text-primary text-sm sm:text-base">{candidate.votes}</span>
+                              <span className="text-xs sm:text-sm text-muted-foreground ml-2">({candidate.percentage}%)</span>
                             </div>
                           </div>
                           <Progress value={candidate.percentage} className="h-2" />
@@ -334,9 +332,9 @@ export default function BlockchainVotingSystem() {
                       ))}
                     </div>
 
-                    <div className="flex justify-between items-center pt-4 border-t text-sm text-muted-foreground">
-                      <span>Lisk TX: {election.liskTxHash}</span>
-                      <Badge variant="outline" className="text-green-600">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pt-4 border-t text-xs sm:text-sm text-muted-foreground">
+                      <span className="break-all sm:break-normal">Lisk TX: {election.liskTxHash}</span>
+                      <Badge variant="outline" className="text-green-600 self-start sm:self-auto">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Verificado en Blockchain
                       </Badge>
