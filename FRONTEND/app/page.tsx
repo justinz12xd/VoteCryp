@@ -119,7 +119,7 @@ export default function BlockchainVotingSystem() {
               <Shield className="h-12 w-12 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-2xl">VoteChain</CardTitle>
+              <CardTitle className="text-2xl">VoteCryp</CardTitle>
               <CardDescription className="text-base mt-2">Sistema de Votación Descentralizado</CardDescription>
             </div>
           </CardHeader>
@@ -178,17 +178,7 @@ export default function BlockchainVotingSystem() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Shield className="h-8 w-8 text-primary" />
-                <h1 className="text-2xl font-bold text-foreground">VoteChain</h1>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline" className="text-primary">
-                  <Network className="h-3 w-3 mr-1" />
-                  Lisk Mainnet
-                </Badge>
-                <Badge variant="outline" className="text-green-600">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  ZK Verified
-                </Badge>
+                <h1 className="text-2xl font-bold text-foreground">VoteCryp</h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -213,7 +203,7 @@ export default function BlockchainVotingSystem() {
             <div className="text-center space-y-4">
               <h2 className="text-3xl font-bold text-foreground">Portal de Votación</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Vota de forma anónima y segura usando Zero Knowledge Proofs y encriptación Zama
+                Voto seguro, transparente y accesible!
               </p>
             </div>
 
