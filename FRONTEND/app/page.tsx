@@ -213,7 +213,7 @@ export default function BlockchainVotingSystem() {
             <div className="text-center space-y-4">
               <h2 className="text-3xl font-bold text-foreground">Portal de Votación</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Vota de forma anónima y segura usando Zero Knowledge Proofs y encriptación Zama
+                Voto seguro, transparente y accesible!
               </p>
             </div>
 
