@@ -47,14 +47,6 @@ export default function DashboardFeature() {
               <h1 className="text-2xl font-bold">Voting Dashboard</h1>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Network className="h-3 w-3" /> Lisk Mainnet
-            </Badge>
-            <Badge variant="secondary" className="flex items-center gap-1 text-green-600">
-              <CheckCircle2 className="h-3 w-3" /> Live
-            </Badge>
-          </div>
         </div>
       </header>
 
