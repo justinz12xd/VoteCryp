@@ -11,6 +11,62 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// --- Swagger/OpenAPI docs ---
+const openapi = {
+  openapi: "3.0.3",
+  info: { title: "Blockchain Service API", version: "1.0.0" },
+  servers: [{ url: "/" }],
+  paths: {
+    "/health": { get: { summary: "Health", responses: { 200: { description: "OK" } } } },
+    "/hasVoted": {
+      get: {
+        summary: "Check if address has voted in an election",
+        parameters: [
+          { name: "electionId", in: "query", required: true, schema: { type: "string" } },
+          { name: "address", in: "query", required: true, schema: { type: "string" } },
+        ],
+        responses: { 200: { description: "OK", content: { "application/json": { schema: { type: "object", properties: { hasVoted: { type: "boolean" } } } } } } },
+      },
+    },
+    "/submitVote": {
+      post: {
+        summary: "Submit encrypted vote and relay to contract",
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object", required: ["electionId", "encryptedVote", "walletAddress"], properties: { electionId: { type: "string" }, encryptedVote: { type: "string" }, walletAddress: { type: "string" } } } } },
+        },
+        responses: { 200: { description: "Tx receipt info" }, 400: { description: "Invalid body" } },
+      },
+    },
+    "/getEncryptedResults": { get: { summary: "Get stored encrypted vote blobs", responses: { 200: { description: "OK" } } } },
+    "/registerENS": { post: { summary: "Register ENS for signer (dev)", requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["ensName"], properties: { ensName: { type: "string" } } } } } }, responses: { 200: { description: "OK" } } } },
+    "/createElection": { post: { summary: "Create election", responses: { 200: { description: "OK" } } } },
+    "/closeElection": { post: { summary: "Close election", responses: { 200: { description: "OK" } } } },
+    "/activeElections": { get: { summary: "List active election IDs", responses: { 200: { description: "OK" } } } },
+    "/electionInfo": { get: { summary: "Get election info", parameters: [{ name: "electionId", in: "query", required: true, schema: { type: "string" } }], responses: { 200: { description: "OK" } } } },
+    "/contractResults": { get: { summary: "Get on-chain results", parameters: [{ name: "electionId", in: "query", required: true, schema: { type: "string" } }], responses: { 200: { description: "OK" } } } },
+  },
+};
+
+app.get("/openapi.json", (_req, res) => res.json(openapi));
+app.get("/docs", (_req, res) => {
+  res.type("html").send(`<!doctype html>
+  <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Blockchain Service Docs</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+      window.ui = SwaggerUIBundle({ url: '/openapi.json', dom_id: '#swagger-ui' });
+    </script>
+  </body>
+  </html>`);
+});
+
 // Select network config (Node environment: default to development unless env vars provided)
 const netCfg = CONTRACT_CONFIG?.development || {
   rpcUrl: "http://127.0.0.1:8545",
