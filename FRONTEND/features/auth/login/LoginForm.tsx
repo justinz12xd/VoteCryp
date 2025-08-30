@@ -12,9 +12,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Wallet, Zap, ArrowRight, Fingerprint } from "lucide-react";
+import {
+  Shield,
+  Wallet,
+  Zap,
+  ArrowRight,
+  Fingerprint,
+  IdCard,
+} from "lucide-react";
 import { useLogin } from "./useLogin";
 import type { LoginProps } from "./types";
+import Link from "next/link";
 
 export function LoginForm(props: LoginProps) {
   const {
@@ -27,7 +35,7 @@ export function LoginForm(props: LoginProps) {
     setCedula,
     fingerprintCode,
     setFingerprintCode,
-    connectWallet,
+    connectUser,
   } = useLogin(props);
 
   return (
@@ -63,9 +71,13 @@ export function LoginForm(props: LoginProps) {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="cedula" className="text-sm">
-                Cédula
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="cedula" className="text-sm">
+                  ID
+                </Label>
+                <IdCard className="h-4 w-4 text-muted-foreground" />
+              </div>
+
               <Input
                 id="cedula"
                 inputMode="numeric"
@@ -80,7 +92,7 @@ export function LoginForm(props: LoginProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="finger" className="text-sm">
-                  Código dactilar
+                  Fingerprint code
                 </Label>
                 <Fingerprint className="h-4 w-4 text-muted-foreground" />
               </div>
@@ -94,13 +106,13 @@ export function LoginForm(props: LoginProps) {
               />
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Estos datos se usan solo para validar tu identidad.
+              This data is used only for voter identification and is not stored.
             </p>
           </div>
 
           <div className="space-y-4">
             <Button
-              onClick={connectWallet}
+              onClick={connectUser}
               className="w-full"
               size="lg"
               disabled={connecting}
@@ -129,18 +141,13 @@ export function LoginForm(props: LoginProps) {
 
           {!connected && (
             <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  typeof window !== "undefined"
-                    ? window.location.assign("/")
-                    : undefined
-                }
+              <Link
+                href="/results"
+                className="flex items-center hover:text-primary"
               >
-                Omitir e ir al portal
+                Skip and see results
                 <ArrowRight className="h-3.5 w-3.5 ml-2" />
-              </Button>
+              </Link>
             </div>
           )}
         </CardContent>

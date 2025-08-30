@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LoginProps, LoginSession } from "./types";
+import { validateEcuadorCedula } from "../validation/ecuadorCedula";
 
 export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
   const [ensName, setEnsName] = useState("");
@@ -18,18 +19,17 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     const c = cedula.trim();
     const f = fingerprintCode.trim();
 
-    if (!c || c.length < 6) {
-      return "Ingresa una cédula válida";
-    }
+    // Validación robusta de cédula ecuatoriana (10 dígitos, módulo 10 para naturales)
+    const cedulaResult = validateEcuadorCedula(c);
+    if (!cedulaResult.valid) return cedulaResult.reason || "Invalid id number";
 
-    if (!/^\d+$/.test(c)) return "La cédula debe contener solo números";
-    if (!f || f.length < 6) return "Ingresa un código dactilar válido";
+    if (!f || f.length < 6) return "Enter a valid fingerprint code (min 6 characters)";
     if (!/^[A-Za-z0-9-_.]+$/.test(f))
-      return "El código dactilar debe ser alfanumérico";
+      return "Fingerprint code must be alphanumeric";
     return null;
   };
 
-  const connectWallet = async () => {
+  const connectUser = async () => {
     const validationError = validateInputs();
     if (validationError) {
       setError(validationError);
@@ -99,6 +99,6 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     fingerprintCode,
     setFingerprintCode,
     // actions
-    connectWallet,
+    connectUser,
   } as const;
 }

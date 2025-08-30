@@ -6,7 +6,6 @@ import { PanelLeftIcon } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "../button";
 import {
-  Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
