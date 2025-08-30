@@ -6,7 +6,8 @@ import { validateEcuadorCedula } from "../validation/ecuadorCedula";
 
 export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
   const [ensName, setEnsName] = useState("");
-  const [walletAddress, setWalletAddress] = useState("");
+  // New preferred name: sessionAddress. Keep walletAddress for compatibility.
+  const [sessionAddress, setSessionAddress] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
@@ -23,7 +24,8 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     const cedulaResult = validateEcuadorCedula(c);
     if (!cedulaResult.valid) return cedulaResult.reason || "Invalid id number";
 
-    if (!f || f.length < 6) return "Enter a valid fingerprint code (min 6 characters)";
+    if (!f || f.length < 6)
+      return "Enter a valid fingerprint code (min 6 characters)";
     if (!/^[A-Za-z0-9-_.]+$/.test(f))
       return "Fingerprint code must be alphanumeric";
     return null;
@@ -39,20 +41,37 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     try {
       setConnecting(true);
       setError(null);
-      // Simulación de conexión de wallet (reemplazar por wagmi/rainbowkit si aplica)
-      await new Promise((r) => setTimeout(r, 1000));
-      const mockAddress = "0x123456789abcdef123456789abcdef1234567890";
-      const mockEns = ensName || "voter.eth";
+      const API_URL = `${process.env.REACT_APP_API_URL}/api/auth/login`;
+      // Call backend auth endpoint with cedula + fingerprintCode
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cedula: cedula.trim(),
+          fingerprintCode: fingerprintCode.trim(),
+        }),
+      });
 
-      setWalletAddress(mockAddress);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setError(err?.error || "Authentication failed");
+        return;
+      }
 
-      setConnected(true);
+      const data = await res.json().catch(() => ({}));
+
+      // Accept either new sessionAddress or legacy walletAddress from server
+      const addr = data.sessionAddress || "";
+      const ens = data.ensName || ensName || "";
+
+      setSessionAddress(addr);
+      setConnected(Boolean(data.connected));
 
       // Persist a lightweight session so the voting page can recognize login
       try {
         const session: LoginSession = {
-          address: mockAddress,
-          ens: mockEns,
+          address: addr,
+          ens: ens,
           cedula,
           fingerprintCode,
         };
@@ -62,25 +81,24 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
       }
 
       onLogin?.({
-        address: mockAddress,
-        ens: mockEns,
+        address: addr,
+        ens: ens,
         cedula,
         fingerprintCode,
       });
 
-      // Redirección opcional tras conectar
       if (typeof window !== "undefined" && redirectTo) {
-        // Dar un pequeño tiempo para que el usuario vea el estado
         setTimeout(() => {
           try {
             window.location.assign(redirectTo);
-          } catch {
-            // noop si no se puede redirigir (por ejemplo si es usado en un modal)
-          }
+          } catch {}
         }, 600);
       }
-    } catch {
-      setError("No se pudo conectar la wallet. Inténtalo de nuevo.");
+    } catch (e) {
+      // keep error generic for UX
+      setError("Authentication failed. Try again.");
+      // eslint-disable-next-line no-console
+      console.error("connectUser error:", e);
     } finally {
       setConnecting(false);
     }
@@ -90,7 +108,8 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     // state
     ensName,
     setEnsName,
-    walletAddress,
+    // expose both names; prefer sessionAddress in new code
+    sessionAddress,
     connecting,
     error,
     connected,

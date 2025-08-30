@@ -1,6 +1,5 @@
 import * as React from "react";
 import {
-  Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
@@ -12,7 +11,6 @@ import {
   DialogTrigger,
 } from "./index";
 
-export type DialogProps = React.ComponentProps<typeof Dialog>;
 export type DialogContentProps = React.ComponentProps<typeof DialogContent>;
 export type DialogTriggerProps = React.ComponentProps<typeof DialogTrigger>;
 export type DialogCloseProps = React.ComponentProps<typeof DialogClose>;

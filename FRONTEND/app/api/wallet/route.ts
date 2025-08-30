@@ -6,6 +6,7 @@ export async function GET() {
 
   return NextResponse.json({
     connected: true,
+    sessionAddress: mockAddress,
     walletAddress: mockAddress,
     ensName: mockEns,
   });
