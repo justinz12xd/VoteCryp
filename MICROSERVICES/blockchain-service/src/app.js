@@ -12,7 +12,7 @@ import { buildRoutes } from "./routes/blockchainRoutes.js";
 
 dotenv.config();
 
-export function buildApp() {
+export async function buildApp() {
   const app = express();
   app.use(cors());
   app.use(express.json());
@@ -26,7 +26,7 @@ export function buildApp() {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(undefined, { swaggerUrl: "/openapi.yaml" }));
 
   // Domain wiring
-  const contract = createContract();
+  const contract = await createContract();
   const service = new BlockchainService(contract);
   const controller = createBlockchainController(service);
   app.use(buildRoutes(controller));
