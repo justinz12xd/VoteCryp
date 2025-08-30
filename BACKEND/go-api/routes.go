@@ -9,6 +9,8 @@ func registerRoutes(app *fiber.App) {
 
 	api.Post("/register", RegisterHandler)
 	api.Post("/login", LoginHandler)
+	api.Post("/register-ens", AuthMiddleware, RegisterENSHandler)
+	api.Get("/me", AuthMiddleware, MeHandler) // This line is already present
 	api.Post("/submitVote", AuthMiddleware, SubmitVoteHandler)
 	api.Get("/results", AuthMiddleware, GetResultsHandler)
 
@@ -18,11 +20,13 @@ func registerRoutes(app *fiber.App) {
 			"openapi": "3.0.3",
 			"info":    fiber.Map{"title": "Go API (Orchestrator)", "version": "1.0.0"},
 			"paths": fiber.Map{
-				"/health":         fiber.Map{"get": fiber.Map{"summary": "Health", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
-				"/api/register":   fiber.Map{"post": fiber.Map{"summary": "Register a user", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
-				"/api/login":      fiber.Map{"post": fiber.Map{"summary": "Login and get JWT", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
-				"/api/submitVote": fiber.Map{"post": fiber.Map{"summary": "Encrypt + submit vote", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
-				"/api/results":    fiber.Map{"get": fiber.Map{"summary": "Get tallied results", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/health":           fiber.Map{"get": fiber.Map{"summary": "Health", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/api/register":     fiber.Map{"post": fiber.Map{"summary": "Register a user", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/api/login":        fiber.Map{"post": fiber.Map{"summary": "Login and get JWT", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/api/register-ens": fiber.Map{"post": fiber.Map{"summary": "Proxy ENS registration", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/api/me":           fiber.Map{"get": fiber.Map{"summary": "Get current user + ENS info", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/api/submitVote":   fiber.Map{"post": fiber.Map{"summary": "Encrypt + submit vote", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/api/results":      fiber.Map{"get": fiber.Map{"summary": "Get tallied results", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
 			},
 		})
 	})

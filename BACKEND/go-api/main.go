@@ -13,6 +13,7 @@ import (
 
 func main() {
 	_ = godotenv.Load()
+	MustInitDB()
 	app := fiber.New()
 	app.Use(recover.New())
 	app.Use(logger.New())

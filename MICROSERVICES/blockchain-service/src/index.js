@@ -101,6 +101,27 @@ const openapi = {
         responses: { 200: { description: "OK" } },
       },
     },
+    "/registerENSWithPK": {
+      post: {
+        summary: "Register ENS for provided private key",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["ensName", "privateKey"],
+                properties: {
+                  ensName: { type: "string" },
+                  privateKey: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "OK" } },
+      },
+    },
     "/createElection": {
       post: {
         summary: "Create election",
@@ -131,6 +152,23 @@ const openapi = {
           },
         ],
         responses: { 200: { description: "OK" } },
+      },
+    },
+    "/getENSVoter": {
+      get: {
+        summary: "Get ENS voter info for an address",
+        parameters: [
+          {
+            name: "address",
+            in: "query",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          200: { description: "OK" },
+          400: { description: "Missing address" },
+        },
       },
     },
     "/contractResults": {
@@ -207,6 +245,23 @@ app.get("/hasVoted", async (req, res) => {
   }
 });
 
+// Get ENS voter info by address
+app.get("/getENSVoter", async (req, res) => {
+  try {
+    const { address } = req.query || {};
+    if (!address) return res.status(400).json({ error: "missing address" });
+    const info = await contract.getENSVoter(address);
+    // tuple: [ensName, isVerified, registrationTime]
+    const ensName = info[0];
+    const isVerified = Boolean(info[1]);
+    const registrationTime = Number(info[2]);
+    res.json({ ensName, isVerified, registrationTime });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "getENSVoter failed" });
+  }
+});
+
 // Submit encrypted vote to chain (for now, call vote with option extracted) and keep encrypted blob server-side
 app.post("/submitVote", async (req, res) => {
   try {
@@ -251,6 +306,32 @@ app.post("/registerENS", async (req, res) => {
     const tx = await contract.registerENS(ensName);
     const receipt = await tx.wait();
     res.json({ txHash: receipt.hash, ensName });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "register failed" });
+  }
+});
+
+// POST /registerENSWithPK { ensName, privateKey }
+app.post("/registerENSWithPK", async (req, res) => {
+  try {
+    const { ensName, privateKey } = req.body || {};
+    if (!ensName || !privateKey) {
+      return res.status(400).json({ error: "invalid body" });
+    }
+    const tmpWallet = new ethers.Wallet(privateKey, provider);
+    const contractForWallet = new ethers.Contract(
+      contractAddress,
+      VOTING_CONTRACT_ABI,
+      tmpWallet
+    );
+    const tx = await contractForWallet.registerENS(ensName);
+    const receipt = await tx.wait();
+    res.json({
+      txHash: receipt.hash,
+      ensName,
+      from: await tmpWallet.getAddress(),
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "register failed" });
@@ -344,6 +425,23 @@ app.get("/electionInfo", async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "info failed" });
+  }
+});
+
+// GET /getENSVoter?address=0x...
+app.get("/getENSVoter", async (req, res) => {
+  try {
+    const { address } = req.query || {};
+    if (!address) return res.status(400).json({ error: "missing address" });
+    const info = await contract.getENSVoter(address);
+    // ethers v6 returns array-like with named keys if ABI has names
+    const ensName = info.ensName ?? info[0] ?? "";
+    const isVerified = Boolean(info.isVerified ?? info[1] ?? false);
+    const registrationTime = Number(info.registrationTime ?? info[2] ?? 0);
+    res.json({ ensName, isVerified, registrationTime });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "ens query failed" });
   }
 });
 
