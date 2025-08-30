@@ -20,7 +20,7 @@ export default function Hero() {
 
       <div className="flex flex-wrap gap-3">
         <Link href="/voting">
-          <Button size="lg" className="min-w-[160px]">Ir a votar</Button>
+          <Button size="lg" className="min-w-[160px]">Go voting</Button>
         </Link>
       </div>
     </div>
