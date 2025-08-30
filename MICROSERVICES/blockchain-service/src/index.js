@@ -2,6 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { ethers } from "ethers";
+import fs from "fs";
+import path from "path";
+import swaggerUi from "swagger-ui-express";
 
 // In a real setup, reuse BLOCKCHAIN/contract-config.js directly or via package
 import { VOTING_CONTRACT_ABI, CONTRACT_CONFIG } from "./contract-config.js";
@@ -10,6 +13,21 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve OpenAPI and Swagger UI
+const openapiPath = path.resolve(
+  path.dirname(new URL(import.meta.url).pathname),
+  "../swagger.yaml"
+);
+app.get("/openapi.yaml", (_req, res) => {
+  res.setHeader("Content-Type", "application/yaml");
+  fs.createReadStream(openapiPath).pipe(res);
+});
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(undefined, { swaggerUrl: "/openapi.yaml" })
+);
 
 // Select network config (Node environment: default to development unless env vars provided)
 const netCfg = CONTRACT_CONFIG?.development || {
