@@ -12,7 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Wallet, Zap, ArrowRight, Fingerprint } from "lucide-react";
+import {
+  Shield,
+  Wallet,
+  Zap,
+  ArrowRight,
+  Fingerprint,
+  IdCard,
+} from "lucide-react";
 import { useLogin } from "./useLogin";
 import type { LoginProps } from "./types";
 
@@ -63,9 +70,13 @@ export function LoginForm(props: LoginProps) {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="cedula" className="text-sm">
-                Cédula
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="cedula" className="text-sm">
+                  ID
+                </Label>
+                <IdCard className="h-4 w-4 text-muted-foreground" />
+              </div>
+
               <Input
                 id="cedula"
                 inputMode="numeric"
@@ -80,7 +91,7 @@ export function LoginForm(props: LoginProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="finger" className="text-sm">
-                  Código dactilar
+                  Fingerprint code
                 </Label>
                 <Fingerprint className="h-4 w-4 text-muted-foreground" />
               </div>
