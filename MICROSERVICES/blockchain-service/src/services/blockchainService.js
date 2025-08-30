@@ -105,4 +105,26 @@ export class BlockchainService {
       fheEnabled: Boolean(results.fheEnabled),
     };
   }
+
+  async getENSVoter(address) {
+    if (!address) throw Object.assign(new Error("missing address"), { status: 400 });
+    const info = await this.contract.getENSVoter(address);
+    return {
+      ensName: info.ensName || "",
+      isVerified: Boolean(info.isVerified),
+      registrationTime: Number(info.registrationTime || 0),
+    };
+  }
+
+  async registerENSWithPK({ ensName, privateKey }) {
+    if (!ensName || !privateKey) throw Object.assign(new Error("invalid body"), { status: 400 });
+    // Reconnect contract with user signer to ensure tx is from user wallet
+    const { ethers } = await import("ethers");
+    const provider = this.contract.runner?.provider || this.contract.provider;
+    const userSigner = new ethers.Wallet(privateKey, provider);
+    const userContract = this.contract.connect(userSigner);
+    const tx = await userContract.registerENS(ensName);
+    const receipt = await tx.wait();
+    return { txHash: receipt.hash, confirmed: true };
+  }
 }

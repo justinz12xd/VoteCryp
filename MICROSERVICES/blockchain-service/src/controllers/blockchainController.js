@@ -20,5 +20,7 @@ export function createBlockchainController(service) {
     activeElections: handle(async () => service.getActiveElections()),
     electionInfo: handle(async (req) => service.getElectionInfo(req.query.electionId)),
     contractResults: handle(async (req) => service.getContractResults(req.query.electionId)),
+  getENSVoter: handle(async (req) => service.getENSVoter(req.query.address)),
+  registerENSWithPK: handle(async (req) => service.registerENSWithPK(req.body || {})),
   };
 }
