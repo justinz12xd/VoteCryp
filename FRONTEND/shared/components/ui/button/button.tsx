@@ -12,11 +12,19 @@ export function Button({
   ...props
 }: ButtonProps) {
   const Comp = asChild ? Slot : "button";
+  // Ensure a default button type to avoid accidental form submission when
+  // this component is used inside forms without an explicit type.
+  const elementProps = { ...(props as Record<string, unknown>) };
+  if (!asChild && typeof elementProps.type === "undefined") {
+    // @ts-ignore - type is valid for native button
+    elementProps.type = "button";
+  }
+
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
+      {...(elementProps as any)}
     />
   );
 }

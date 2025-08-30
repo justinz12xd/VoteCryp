@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -13,32 +13,17 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Shield, Vote, Lock, Zap } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
-import { useElections, ADMIN_ADDRESSES } from "../shared";
+import { useElections } from "../shared";
 import useWallet from "../shared/useWallet";
 import type { Election } from "../shared/types";
 
 export function VotingFeature() {
-  const {
-    connected: walletConnected,
-    ensName = "",
-    walletAddress = "",
-    loading: walletLoading,
-  } = useWallet();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { connected: walletConnected } = useWallet();
   const [selectedElection, setSelectedElection] = useState<number | null>(null);
   const [hasVoted, setHasVoted] = useState<{ [key: number]: boolean }>({});
   const [zamaEncrypting, setZamaEncrypting] = useState(false);
 
   const { elections } = useElections();
-
-  useEffect(() => {
-    if (!walletLoading) {
-      const derivedIsAdmin =
-        ADMIN_ADDRESSES.includes(walletAddress) ||
-        ADMIN_ADDRESSES.includes(ensName);
-      setIsAdmin(derivedIsAdmin);
-    }
-  }, [walletLoading, walletAddress, ensName]);
 
   const encryptVoteWithZama = async (
     electionId: number,
@@ -120,7 +105,7 @@ export function VotingFeature() {
     );
   };
 
-  if (walletConnected && isAdmin) {
+  if (walletConnected) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">

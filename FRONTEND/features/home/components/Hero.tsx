@@ -9,23 +9,21 @@ export default function Hero() {
         <Shield className="h-10 w-10 text-primary" />
         <div>
           <h1 className="text-4xl font-bold text-foreground">VoteCrypt</h1>
-          <p className="text-sm text-muted-foreground">Decentralized, private and verifiable voting</p>
+          <p className="text-sm text-muted-foreground">
+            Decentralized, private and verifiable voting
+          </p>
         </div>
       </div>
 
       <p className="text-lg text-muted-foreground max-w-xl">
         VoteCrypt combines Lisk blockchain transparency with Zama's
-        homomorphic-style encryption and ENS identity verification to
-        deliver a modern, privacy-first voting platform. Easy to audit,
-        simple to use.
+        homomorphic-style encryption and ENS identity verification to deliver a
+        modern, privacy-first voting platform. Easy to audit, simple to use.
       </p>
 
       <div className="flex flex-wrap gap-3">
         <Link href="/voting">
           <Button size="lg">View Voting</Button>
-        </Link>
-        <Link href="/admin">
-          <Button variant="outline" size="lg">Admin Panel</Button>
         </Link>
       </div>
     </div>

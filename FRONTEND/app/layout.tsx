@@ -20,8 +20,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+        {/* Skip link visible to keyboard users */}
+        <a href="#maincontent" className="sr-only">Skip to main content</a>
+
         <Navigation />
-        {children}
+
+        {/* Main landmark for screen readers and skip-to-main target */}
+        <main id="maincontent" tabIndex={-1}>
+          {children}
+        </main>
+
         <Analytics />
         <Footer />
       </body>

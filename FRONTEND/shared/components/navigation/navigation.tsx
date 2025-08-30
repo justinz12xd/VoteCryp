@@ -16,25 +16,31 @@ export function Navigation(): React.ReactNode {
   } = useWallet();
 
   return (
-    <header className="border-b bg-card">
+    <header className="border-b bg-card" role="banner">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">VoteCrypt</h1>
+              {/* Decorative branding icon - hide from AT */}
+              <Shield className="h-8 w-8 text-primary" aria-hidden="true" />
+              {/* Make the site title a link to home for keyboard users */}
+              <Link href="/" aria-label="VoteCrypt home" className="text-2xl font-bold text-foreground focus:outline-none">
+                VoteCrypt
+              </Link>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <Link href="/results">
-              <Button variant="outline">See results</Button>
-            </Link>
-            {/* show wallet info once hook finishes loading to avoid flicker */}
-            <WalletInfo
-              ensName={walletLoading ? "" : ensName}
-              walletAddress={walletLoading ? "" : walletAddress}
-            />
-          </div>
+          <nav aria-label="Primary navigation">
+            <div className="flex items-center space-x-4">
+              <Link href="/results">
+                <Button variant="outline">See results</Button>
+              </Link>
+              {/* show wallet info once hook finishes loading to avoid flicker */}
+              <WalletInfo
+                ensName={walletLoading ? "" : ensName}
+                walletAddress={walletLoading ? "" : walletAddress}
+              />
+            </div>
+          </nav>
         </div>
       </div>
     </header>

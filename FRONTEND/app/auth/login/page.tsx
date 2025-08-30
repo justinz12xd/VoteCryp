@@ -1,7 +1,8 @@
 "use client";
 
+import Login from "@/features/auth/login";
 import React from "react";
 
 export default function Page() {
-  return <div>Login Page</div>;
+  return <Login redirectTo="/" />;
 }
