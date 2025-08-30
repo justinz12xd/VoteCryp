@@ -1,4 +1,4 @@
-import DashboardFeature from "@/features/dashboard"
+import DashboardFeature from "@/features/results"
 
 export default function Page() {
   return <DashboardFeature />
