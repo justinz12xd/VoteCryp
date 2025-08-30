@@ -42,7 +42,13 @@ func (u *VotingUseCase) SubmitVote(userID, electionID string, candidateIdx int) 
 		return nil, errors.New("encryption failed")
 	}
 	encVote, _ := encResp["encryptedVote"].(string)
-	bcResp, status, err := u.ext.SubmitVote(usr.WalletAddress, encVote, electionID)
+	// Decrypt user private key and submit as the user so msg.sender is ENS verified
+	privBytes, err := cryptohelper.DecryptAES(u.cfg.AESKey, usr.WalletPrivEnc)
+	if err != nil {
+		return nil, errors.New("wallet decrypt failed")
+	}
+	privHex := fmt.Sprintf("0x%x", privBytes)
+	bcResp, status, err := u.ext.SubmitVoteWithPK(encVote, electionID, privHex)
 	if err != nil || status != 200 {
 		return nil, errors.New("blockchain submit failed")
 	}

@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Shield,
-  Wallet,
   Zap,
   ArrowRight,
   Fingerprint,
@@ -24,10 +23,10 @@ import { useLogin } from "./useLogin";
 import type { LoginProps } from "./types";
 import Link from "next/link";
 
-export function LoginForm(props: LoginProps) {
+export function LoginForm(props: Readonly<LoginProps>) {
   const {
     ensName,
-    walletAddress,
+    sessionAddress,
     connecting,
     error,
     connected,
@@ -124,21 +123,21 @@ export function LoginForm(props: LoginProps) {
               {connecting ? (
                 <>
                   <Zap className="h-4 w-4 mr-2 animate-spin" />
-                  Conectando...
+                  Authenticating...
                 </>
               ) : (
                 <>
-                  <Wallet className="h-4 w-4 mr-2" />
-                  Ingresar
+                  <Fingerprint className="h-4 w-4 mr-2" />
+                  Sign in
                 </>
               )}
             </Button>
           </div>
-          {walletAddress && (
+      {(sessionAddress) && (
             <div className="flex items-center justify-between text-[11px] sm:text-xs text-muted-foreground border-t pt-4">
-              <span>Wallet</span>
+              <span>Session</span>
               <span className="font-medium">
-                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                {sessionAddress.slice(0, 6)}...{sessionAddress.slice(-4)}
               </span>
             </div>
           )}

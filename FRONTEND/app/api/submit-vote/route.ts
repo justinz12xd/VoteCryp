@@ -20,14 +20,20 @@ async function goApi(path: string, init?: RequestInit) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { electionId, candidateIndex, walletAddress } = await req.json();
-    if (!electionId || typeof candidateIndex !== "number" || !walletAddress) {
+    const { electionId, candidateIndex, cedula, fingerprintCode } =
+      await req.json();
+    if (
+      !electionId ||
+      typeof candidateIndex !== "number" ||
+      !cedula ||
+      !fingerprintCode
+    ) {
       return NextResponse.json({ error: "invalid body" }, { status: 400 });
     }
 
-    // derive a demo user from walletAddress
-    const email = `${walletAddress.toLowerCase()}@wallet.local`;
-    const password = walletAddress;
+    // derive a demo user from cedula (server-side demo only)
+    const email = `${cedula.toLowerCase()}@voter.local`;
+    const password = cedula;
 
     // try register, fallback to login if exists
     let token: string | null = null;

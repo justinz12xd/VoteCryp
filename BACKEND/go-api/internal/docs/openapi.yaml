@@ -1,0 +1,252 @@
+openapi: 3.0.3
+info:
+  title: VoteCryp Go API (Orchestrator)
+  version: 1.0.0
+  description: |
+    API del backend en Go que orquesta autenticación, verificación ENS y votación.
+    - Persistencia: SQLite via GORM
+    - Autenticación: JWT Bearer
+    - Microservicios: encryption-service, blockchain-service, results-service
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  ts: { type: string, format: date-time }
+  /api/register:
+    post:
+      summary: Registrar usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credentials"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Credentials"
+      responses:
+        "200":
+          description: Usuario registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Usuario ya existe
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/login:
+    post:
+      summary: Iniciar sesión y obtener JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credentials"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Credentials"
+      responses:
+        "200":
+          description: Sesión iniciada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/me:
+    get:
+      summary: Información del usuario y ENS
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Información del usuario y estado ENS
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+                  ens:
+                    type: object
+                    properties:
+                      ensName: { type: string }
+                      isVerified: { type: boolean }
+                      registrationTime: { type: integer }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/register-ens:
+    post:
+      summary: Registrar ENS del usuario en blockchain
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ensName]
+              properties:
+                ensName: { type: string, example: alice.eth }
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [ensName]
+              properties:
+                ensName: { type: string }
+      responses:
+        "200":
+          description: ENS registrado
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "502":
+          description: Error en microservicio blockchain o al desencriptar wallet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/submitVote:
+    post:
+      summary: Encriptar y enviar voto en una elección
+      description: |
+        Reglas:
+        - Requiere ENS verificado del usuario (solo entonces el contrato acepta vote())
+        - Previene doble voto por usuario por elección en la capa de aplicación
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [electionId, candidateIndex]
+              properties:
+                electionId: { type: string, example: "1" }
+                candidateIndex: { type: integer, example: 0 }
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [electionId, optionIndex]
+              properties:
+                electionId: { type: string }
+                optionIndex:
+                  {
+                    type: integer,
+                    description: Alias aceptado por compatibilidad,
+                    mapea a candidateIndex,
+                  }
+      responses:
+        "200":
+          description: Voto enviado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  tx:
+                    type: object
+        "412":
+          description: Precondición fallida (ENS no verificado o ya votó)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Error en encriptación o envío a blockchain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/results:
+    get:
+      summary: Resultados desencriptados
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Resultados
+          content:
+            application/json:
+              schema:
+                type: object
+        "502":
+          description: Error obteniendo o desencriptando resultados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Cuerpo inválido o faltan campos
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Falta o es inválido el token JWT
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: invalid body
+    Credentials:
+      type: object
+      required: [Email, Password]
+      properties:
+        Email:
+          type: string
+          format: email
+          example: user@example.com
+        Password:
+          type: string
+          example: pass123
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string }
+        wallet:
+          type: object
+          properties:
+            address: { type: string }

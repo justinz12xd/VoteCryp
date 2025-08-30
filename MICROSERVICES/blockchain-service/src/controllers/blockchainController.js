@@ -16,7 +16,9 @@ export function createBlockchainController(service) {
       service.hasVoted(req.query.electionId, req.query.address)
     ),
     submitVote: handle(async (req) => service.submitVote(req.body || {})),
-  submitVoteWithPK: handle(async (req) => service.submitVoteWithPK(req.body || {})),
+    submitVoteWithPK: handle(async (req) =>
+      service.submitVoteWithPK(req.body || {})
+    ),
     getEncryptedResults: handle(async () => service.getEncryptedResults()),
     createElection: handle(async (req) =>
       service.createElection(req.body || {})
