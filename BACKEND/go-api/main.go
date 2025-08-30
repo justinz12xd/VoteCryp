@@ -3,16 +3,17 @@ package main
 import (
 	"log"
 	"time"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/joho/godotenv"
 	"votcryp/backend/internal/config"
 	delivery "votcryp/backend/internal/delivery/http"
 	infraDB "votcryp/backend/internal/infra/db"
 	repo "votcryp/backend/internal/infra/repository"
 	"votcryp/backend/internal/service"
 	"votcryp/backend/internal/usecase"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -20,7 +21,9 @@ func main() {
 	cfg := config.Load()
 
 	gdb, err := infraDB.Open(cfg)
-	if err != nil { log.Fatalf("db open failed: %v", err) }
+	if err != nil {
+		log.Fatalf("db open failed: %v", err)
+	}
 
 	users := repo.NewUserGormRepo(gdb)
 	votes := repo.NewVoteIndexGormRepo(gdb)
