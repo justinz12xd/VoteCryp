@@ -22,11 +22,11 @@ export function Footer() {
       role="contentinfo"
       aria-label="Footer"
     >
-      <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        {/* Logo y descripción */}
-        <div className="flex items-center gap-3">
+      <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-around  gap-6">
+        {/* Logo and description */}
+        <div className="flex flex-col md:flex-row items-center gap-3">
           <Shield className="h-10 w-10 text-primary" aria-hidden="true" />
-          <div>
+          <div className="text-center md:text-left">
             <h5 className="font-bold text-lg">VoteCrypt</h5>
             <p className="text-sm text-muted-foreground">
               Open-source project for private and verifiable voting
@@ -34,23 +34,25 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Enlaces rápidos */}
-        <div className="flex flex-col sm:flex-row gap-4 mr-10">
-          <div className="flex flex-col gap-2">
-            <h6 className="font-semibold text-sm">Quick Links</h6>
+        {/* Quick Links */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start w-full md:w-auto">
+          <div className="flex flex-col gap-2 items-center sm:items-start">
+            <h6 className="font-semibold text-lg text-center sm:text-left">
+              Quick Links
+            </h6>
 
             {quickLinks.map(({ label, href, Icon, external }) => (
               <a
                 key={label}
                 href={href}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors flex gap-2 items-center"
+                className="group text-md text-muted-foreground flex gap-2 items-center transition-colors hover:text-primary"
                 {...(external
                   ? { target: "_blank", rel: "noopener noreferrer" }
                   : {})}
               >
                 {label}
                 <Icon
-                  className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors"
+                  className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary"
                   aria-hidden="true"
                 />
               </a>
@@ -60,7 +62,7 @@ export function Footer() {
       </div>
 
       <div className="mt-6 text-center text-xs text-muted-foreground">
-        &copy; {new Date().getFullYear()} VoteCrypt. All rights reserved for us
+        &copy; {new Date().getFullYear()} VoteCrypt. All rights reserved.
       </div>
     </footer>
   );
