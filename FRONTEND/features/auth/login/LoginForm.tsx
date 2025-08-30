@@ -98,12 +98,16 @@ export function LoginForm(props: LoginProps) {
               </div>
               <Input
                 id="finger"
-                placeholder="ABC1234"
+                placeholder="E1333I1222"
                 autoComplete="off"
                 value={fingerprintCode}
-                onChange={(e) => setFingerprintCode(e.target.value)}
-                className="text-sm"
+                onChange={(e) => setFingerprintCode(e.target.value.trim())}
+                className="text-sm uppercase"
+                maxLength={10}
               />
+              <p className="text-[11px] text-muted-foreground">
+                Formato requerido: Letra-4 dígitos-Letra-4 dígitos. Ej: E1333I1222
+              </p>
             </div>
             <p className="text-[11px] text-muted-foreground">
               This data is used only for voter identification and is not stored.

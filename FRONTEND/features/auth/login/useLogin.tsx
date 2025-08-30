@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LoginProps, LoginSession } from "./types";
 import { validateEcuadorCedula } from "../validation/ecuadorCedula";
+import { validateFingerprintCode } from "../validation/fingerprintCode";
 
 export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
   const [ensName, setEnsName] = useState("");
@@ -23,9 +24,8 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     const cedulaResult = validateEcuadorCedula(c);
     if (!cedulaResult.valid) return cedulaResult.reason || "Invalid id number";
 
-    if (!f || f.length < 6) return "Enter a valid fingerprint code (min 6 characters)";
-    if (!/^[A-Za-z0-9-_.]+$/.test(f))
-      return "Fingerprint code must be alphanumeric";
+  const fingerResult = validateFingerprintCode(f);
+  if (!fingerResult.valid) return fingerResult.reason || "Fingerprint code inválido";
     return null;
   };
 
