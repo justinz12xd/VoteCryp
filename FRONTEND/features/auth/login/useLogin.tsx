@@ -29,7 +29,7 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     return null;
   };
 
-  const connectWallet = async () => {
+  const connectUser = async () => {
     const validationError = validateInputs();
     if (validationError) {
       setError(validationError);
@@ -99,6 +99,6 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     fingerprintCode,
     setFingerprintCode,
     // actions
-    connectWallet,
+    connectUser,
   } as const;
 }
