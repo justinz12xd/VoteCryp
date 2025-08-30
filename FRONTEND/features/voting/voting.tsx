@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -10,26 +10,20 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  CheckCircle2,
-  Shield,
-  Vote,
-  Wallet,
-  Lock,
-  Zap,
-  Network,
-} from "lucide-react";
+import { CheckCircle2, Shield, Vote, Lock, Zap } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { useElections, WalletInfo, ADMIN_ADDRESSES } from "../shared";
+import useWallet from "../shared/useWallet";
 import type { Election } from "../shared/types";
 
 export function VotingFeature() {
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [ensName, setEnsName] = useState("");
-  const [walletAddress, setWalletAddress] = useState("");
+  const {
+    connected: walletConnected,
+    ensName = "",
+    walletAddress = "",
+    loading: walletLoading,
+  } = useWallet();
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedElection, setSelectedElection] = useState<number | null>(null);
   const [hasVoted, setHasVoted] = useState<{ [key: number]: boolean }>({});
@@ -37,19 +31,14 @@ export function VotingFeature() {
 
   const { elections } = useElections();
 
-  const connectWallet = async () => {
-    setWalletConnected(true);
-    const mockAddress = "0x123456789abcdef123456789abcdef1234567890";
-    const mockEns = "voter.eth";
-
-    setWalletAddress(mockAddress);
-    setEnsName(mockEns);
-
-    // Check if user is admin
-    setIsAdmin(
-      ADMIN_ADDRESSES.includes(mockAddress) || ADMIN_ADDRESSES.includes(mockEns)
-    );
-  };
+  useEffect(() => {
+    if (!walletLoading) {
+      const derivedIsAdmin =
+        ADMIN_ADDRESSES.includes(walletAddress) ||
+        ADMIN_ADDRESSES.includes(ensName);
+      setIsAdmin(derivedIsAdmin);
+    }
+  }, [walletLoading, walletAddress, ensName]);
 
   const encryptVoteWithZama = async (
     electionId: number,
@@ -150,68 +139,6 @@ export function VotingFeature() {
     );
   }
 
-  if (!walletConnected) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4">
-          <CardHeader className="text-center space-y-4">
-            <div className="flex justify-center">
-              <Shield className="h-12 w-12 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-2xl">VoteCrypt</CardTitle>
-              <CardDescription className="text-base mt-2">
-                Sistema de Votación Descentralizado
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="p-3 bg-muted rounded-lg">
-                <Network className="h-6 w-6 text-primary mx-auto mb-1" />
-                <div className="text-xs font-medium">Lisk Blockchain</div>
-              </div>
-              <div className="p-3 bg-muted rounded-lg">
-                <Lock className="h-6 w-6 text-primary mx-auto mb-1" />
-                <div className="text-xs font-medium">Zama Encryption</div>
-              </div>
-              <div className="p-3 bg-muted rounded-lg">
-                <Zap className="h-6 w-6 text-primary mx-auto mb-1" />
-                <div className="text-xs font-medium">ENS Identity</div>
-              </div>
-              <div className="p-3 bg-muted rounded-lg">
-                <Shield className="h-6 w-6 text-primary mx-auto mb-1" />
-                <div className="text-xs font-medium">Vercel Deploy</div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="ens">Nombre ENS (opcional)</Label>
-                <Input
-                  id="ens"
-                  placeholder="tu-nombre.eth"
-                  value={ensName}
-                  onChange={(e) => setEnsName(e.target.value)}
-                />
-              </div>
-              <Button onClick={connectWallet} className="w-full" size="lg">
-                <Wallet className="h-4 w-4 mr-2" />
-                Conectar Wallet & Verificar ENS
-              </Button>
-            </div>
-
-            <div className="text-xs text-muted-foreground text-center space-y-1">
-              <p>Votación anónima con encriptación Zama</p>
-              <p>Identidad verificada con ENS</p>
-              <p>Transparencia total en Lisk blockchain</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -297,4 +224,3 @@ export function VotingFeature() {
     </div>
   );
 }
-

@@ -32,14 +32,14 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WalletInfo, ADMIN_ADDRESSES } from "../shared"
+import useWallet from "../shared/useWallet"
 
 // admin addresses are imported from shared/constants
 
 export default function AdminFeature() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [walletAddress, setWalletAddress] = useState("");
-  const [ensName, setEnsName] = useState("");
+  const { walletAddress = "", ensName = "", loading } = useWallet()
 
   const [newElection, setNewElection] = useState({
     title: "",
@@ -51,23 +51,14 @@ export default function AdminFeature() {
   });
 
   useEffect(() => {
-    const checkAdminAccess = async () => {
-      // Simulate wallet connection check
-      const mockAddress = "0x742d35Cc6634C0532925a3b8D4C0C8b3C2e1e1e1";
-      const mockEns = "admin.eth";
-
-      setWalletAddress(mockAddress);
-      setEnsName(mockEns);
-
+    // derive admin/auth state from backend-managed wallet
+    if (!loading) {
       const isAdmin =
-        ADMIN_ADDRESSES.includes(mockAddress) ||
-        ADMIN_ADDRESSES.includes(mockEns);
-      setIsAuthenticated(isAdmin);
-      setIsLoading(false);
-    };
-
-    checkAdminAccess();
-  }, []);
+        ADMIN_ADDRESSES.includes(walletAddress) || ADMIN_ADDRESSES.includes(ensName)
+      setIsAuthenticated(isAdmin)
+      setIsLoading(false)
+    }
+  }, [loading, walletAddress, ensName])
 
   const addCandidate = () => {
     setNewElection((prev) => ({
