@@ -1,3 +1,6 @@
+//go:build legacy_ignore
+// +build legacy_ignore
+
 package main
 
 import (

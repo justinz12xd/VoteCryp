@@ -1,3 +1,6 @@
+//go:build legacy_ignore
+// +build legacy_ignore
+
 package main
 
 import (
@@ -6,8 +9,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-
-	_ "modernc.org/sqlite"
 )
 
 var db *sql.DB

@@ -35,7 +35,9 @@ export function createBlockchainController(service) {
     // quick helper: /createElectionQuick?title=...&options=Alice,Bob&durationHours=2&enableFHE=false
     createElectionQuick: handle(async (req) => {
       const q = req.query || {};
-      const options = String(q.options || "").split(",").filter(Boolean);
+      const options = String(q.options || "")
+        .split(",")
+        .filter(Boolean);
       const body = {
         title: q.title || "Quick Election",
         description: q.description || "",
