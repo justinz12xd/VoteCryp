@@ -1,0 +1,92 @@
+openapi: 3.0.3
+info:
+  title: VoteCryp Encryption Service API
+  version: 1.0.0
+  description: |
+    Servicio de cifrado para votos (mock FHE). Provee endpoints para cifrar votos y hacer tally homomórfico simulado.
+servers:
+  - url: http://localhost:4001
+paths:
+  /health:
+    get:
+      summary: Health
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+  /encryptVote:
+    post:
+      summary: Cifrar voto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [candidateIndex, electionId]
+              properties:
+                candidateIndex:
+                  type: integer
+                  minimum: 0
+                electionId:
+                  type: string
+      responses:
+        '200':
+          description: Voto cifrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  encryptedVote:
+                    type: string
+        '400':
+          description: Invalid body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /tallyVotes:
+    post:
+      summary: Tally homomórfico simulado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [encryptedVotes]
+              properties:
+                encryptedVotes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Tally cifrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tallyEncrypted:
+                    type: string
+        '400':
+          description: Invalid body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string

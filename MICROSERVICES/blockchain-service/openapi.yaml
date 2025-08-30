@@ -1,0 +1,481 @@
+openapi: 3.0.3
+info:
+  title: VoteCryp Blockchain Service API
+  description: |
+    # VoteCryp Blockchain Service
+    
+    Microservicio que actúa como puente entre el backend y el smart contract de VoteCryp.
+    
+    ## Funcionalidades
+    - 🗳️ Gestión de votaciones cifradas
+    - 📊 Consulta de resultados en tiempo real
+    - 🛠️ Administración de elecciones
+    - 🔐 Integración con FHE (Fully Homomorphic Encryption)
+    
+    ## Arquitectura
+    ```
+    Backend ←→ blockchain-service ←→ Smart Contract (Lisk)
+    ```
+    
+    ## Configuración
+    - **Puerto por defecto:** 4002
+    - **Red blockchain:** Configurable via RPC_URL
+    - **Autenticación:** Private key para operaciones admin
+    
+  version: 1.0.0
+  contact:
+    name: VoteCryp Team
+    url: https://github.com/justinz12xd/VoteCryp
+    email: support@votecryp.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:4002
+    description: Servidor de desarrollo local
+  - url: http://blockchain-service:4002
+    description: Contenedor Docker
+  - url: https://api.votecryp.com/blockchain
+    description: Servidor de producción
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Verifica que el servicio esté funcionando correctamente
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+
+  /submitVote:
+    post:
+      summary: Submit encrypted vote
+      description: Envía un voto cifrado al smart contract
+      tags:
+        - Voting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - electionId
+                - encryptedVote
+                - walletAddress
+              properties:
+                electionId:
+                  type: string
+                  description: ID de la elección
+                  example: "1"
+                encryptedVote:
+                  type: string
+                  description: Voto cifrado
+                  example: "encrypted_option_data_0"
+                walletAddress:
+                  type: string
+                  description: Dirección de wallet del votante
+                  example: "0x123..."
+      responses:
+        '200':
+          description: Vote submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  txHash:
+                    type: string
+                    description: Hash de la transacción
+                    example: "0xabc123..."
+                  blockNumber:
+                    type: integer
+                    description: Número de bloque
+                    example: 12345
+                  confirmed:
+                    type: boolean
+                    example: true
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hasVoted:
+    get:
+      summary: Check if address has voted
+      description: Verifica si una dirección ya votó en una elección
+      tags:
+        - Voting
+      parameters:
+        - name: electionId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID de la elección
+          example: "1"
+        - name: address
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Dirección de wallet a verificar
+          example: "0x123..."
+      responses:
+        '200':
+          description: Voting status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hasVoted:
+                    type: boolean
+                    description: True si ya votó, false si no
+                    example: false
+        '400':
+          description: Missing parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Check failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /getEncryptedResults:
+    get:
+      summary: Get encrypted votes
+      description: Obtiene todos los votos cifrados para procesamiento FHE
+      tags:
+        - Results
+      responses:
+        '200':
+          description: Encrypted results retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  encryptedResults:
+                    type: array
+                    items:
+                      type: string
+                    description: Lista de votos cifrados
+                    example: ["encrypted_option_data_0", "encrypted_option_data_1"]
+
+  /createElection:
+    post:
+      summary: Create new election
+      description: Crea una nueva elección en el smart contract (Admin only)
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - options
+                - durationHours
+              properties:
+                title:
+                  type: string
+                  description: Título de la elección
+                  example: "Presidential Election 2025"
+                description:
+                  type: string
+                  description: Descripción detallada
+                  example: "Choose the next president"
+                options:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 2
+                  description: Opciones de votación (mínimo 2)
+                  example: ["Candidate A", "Candidate B", "Candidate C"]
+                durationHours:
+                  type: integer
+                  minimum: 1
+                  description: Duración en horas
+                  example: 168
+                enableFHE:
+                  type: boolean
+                  description: Habilitar cifrado FHE
+                  default: false
+                  example: false
+      responses:
+        '200':
+          description: Election created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  txHash:
+                    type: string
+                    description: Hash de la transacción
+                    example: "0xdef456..."
+                  electionId:
+                    type: string
+                    description: ID de la elección creada
+                    example: "2"
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Creation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /closeElection:
+    post:
+      summary: Close election
+      description: Cierra una elección activa (Admin only)
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - electionId
+              properties:
+                electionId:
+                  type: string
+                  description: ID de la elección a cerrar
+                  example: "1"
+      responses:
+        '200':
+          description: Election closed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  txHash:
+                    type: string
+                    description: Hash de la transacción
+                    example: "0x789abc..."
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Close failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /activeElections:
+    get:
+      summary: Get active elections
+      description: Obtiene lista de elecciones activas
+      tags:
+        - Query
+      responses:
+        '200':
+          description: Active elections retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ids:
+                    type: array
+                    items:
+                      type: integer
+                    description: IDs de elecciones activas
+                    example: [1, 2, 3]
+        '500':
+          description: Query failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /electionInfo:
+    get:
+      summary: Get election information
+      description: Obtiene información detallada de una elección
+      tags:
+        - Query
+      parameters:
+        - name: electionId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID de la elección
+          example: "1"
+      responses:
+        '200':
+          description: Election info retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    example: "Presidential Election 2025"
+                  description:
+                    type: string
+                    example: "Choose the next president"
+                  creator:
+                    type: string
+                    description: Dirección del creador
+                    example: "0xabc123..."
+                  startTime:
+                    type: integer
+                    description: Timestamp de inicio
+                    example: 1693430400
+                  endTime:
+                    type: integer
+                    description: Timestamp de fin
+                    example: 1694035200
+                  status:
+                    type: integer
+                    description: Estado (0=Active, 1=Closed)
+                    example: 0
+                  totalVotes:
+                    type: integer
+                    description: Total de votos
+                    example: 150
+                  optionCount:
+                    type: integer
+                    description: Número de opciones
+                    example: 3
+        '400':
+          description: Missing electionId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Info failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /contractResults:
+    get:
+      summary: Get election results
+      description: Obtiene resultados detallados de una elección
+      tags:
+        - Query
+      parameters:
+        - name: electionId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID de la elección
+          example: "1"
+      responses:
+        '200':
+          description: Election results retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    example: "Presidential Election 2025"
+                  description:
+                    type: string
+                    example: "Choose the next president"
+                  optionNames:
+                    type: array
+                    items:
+                      type: string
+                    description: Nombres de las opciones
+                    example: ["Candidate A", "Candidate B", "Candidate C"]
+                  voteCounts:
+                    type: array
+                    items:
+                      type: integer
+                    description: Conteo de votos por opción
+                    example: [75, 50, 25]
+                  totalVotes:
+                    type: integer
+                    description: Total de votos
+                    example: 150
+                  status:
+                    type: integer
+                    description: Estado (0=Active, 1=Closed)
+                    example: 1
+                  fheEnabled:
+                    type: boolean
+                    description: Si FHE está habilitado
+                    example: false
+        '400':
+          description: Missing electionId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Results failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Descripción del error
+          example: "invalid body"
+
+tags:
+  - name: Health
+    description: Endpoints de salud del servicio
+  - name: Voting
+    description: Endpoints para votación
+  - name: Results
+    description: Endpoints para resultados
+  - name: Admin
+    description: Endpoints administrativos
+  - name: Query
+    description: Endpoints de consulta
