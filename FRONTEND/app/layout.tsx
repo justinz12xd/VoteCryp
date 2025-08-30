@@ -5,9 +5,9 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'VoteCryp',
-  description: 'A hackathon project for secure voting',
-  generator: 'VoteCryp.app',
+  title: 'VoteCrypt',
+  description: 'Created with VoteCrypt',
+  generator: 'VoteCrypt',
 }
 
 export default function RootLayout({
