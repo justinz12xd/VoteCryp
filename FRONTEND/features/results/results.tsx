@@ -6,44 +6,14 @@ import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Shield, BarChart3, Network, ArrowLeft, TrendingUp, Users, Vote } from "lucide-react"
 import Link from "next/link"
-
-// Mock data for demonstration
-const mockElections = [
-  {
-    id: 1,
-    title: "Elección de Presidente DAO",
-    description: "Votación para elegir el nuevo presidente de la organización",
-    status: "active",
-    startDate: "2024-01-15",
-    endDate: "2024-01-30",
-    totalVotes: 1247,
-    liskTxHash: "0x1a2b3c4d5e6f7890abcdef1234567890",
-    candidates: [
-      { name: "Alice Johnson", votes: 523, percentage: 42, encryptedVotes: "zama_encrypted_523" },
-      { name: "Bob Smith", votes: 412, percentage: 33, encryptedVotes: "zama_encrypted_412" },
-      { name: "Carol Davis", votes: 312, percentage: 25, encryptedVotes: "zama_encrypted_312" },
-    ],
-  },
-  {
-    id: 2,
-    title: "Propuesta de Mejoras",
-    description: "Votación sobre implementación de nuevas características",
-    status: "completed",
-    startDate: "2024-01-01",
-    endDate: "2024-01-14",
-    totalVotes: 892,
-    liskTxHash: "0x9876543210fedcba0987654321",
-    candidates: [
-      { name: "A favor", votes: 634, percentage: 71, encryptedVotes: "zama_encrypted_634" },
-      { name: "En contra", votes: 258, percentage: 29, encryptedVotes: "zama_encrypted_258" },
-    ],
-  },
-]
+import { useElections } from "../shared"
+import type { Election } from "../shared/types"
 
 export default function DashboardFeature() {
-  const totalVotes = mockElections.reduce((sum, election) => sum + election.totalVotes, 0)
-  const activeElections = mockElections.filter((e) => e.status === "active").length
-  const completedElections = mockElections.filter((e) => e.status === "completed").length
+  const { elections } = useElections()
+  const totalVotes = elections.reduce((sum, election) => sum + election.totalVotes, 0)
+  const activeElections = elections.filter((e) => e.status === "active").length
+  const completedElections = elections.filter((e) => e.status === "completed").length
 
   return (
     <div className="min-h-screen bg-background">
@@ -137,7 +107,7 @@ export default function DashboardFeature() {
             </div>
 
             <div className="grid gap-6">
-              {mockElections.map((election) => (
+              {elections.map((election: Election) => (
                 <Card key={election.id}>
                   <CardHeader>
                     <div className="flex justify-between items-start">

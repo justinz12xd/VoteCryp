@@ -1,5 +1,7 @@
-import VotingFeature from "@/features/voting"
+"use client";
+
+import { Home } from "@/features/home";
 
 export default function Page() {
-  return <VotingFeature />
+  return <Home />;
 }

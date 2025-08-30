@@ -156,13 +156,11 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   );
 }
 
-export {
-  useFormField,
-  Form,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-  FormField,
-};
+export * from "./Form"
+export * from "./FormField"
+export * from "./useFormField"
+export * from "./FormItem"
+export * from "./FormLabel"
+export * from "./FormControl"
+export * from "./FormDescription"
+export * from "./FormMessage"

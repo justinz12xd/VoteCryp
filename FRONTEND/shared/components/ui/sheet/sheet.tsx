@@ -136,4 +136,13 @@ export {
   SheetFooter,
   SheetTitle,
   SheetDescription,
-}
+export * from "./Sheet"
+export * from "./SheetTrigger"
+export * from "./SheetClose"
+export * from "./SheetPortal"
+export * from "./SheetOverlay"
+export * from "./SheetContent"
+export * from "./SheetHeader"
+export * from "./SheetFooter"
+export * from "./SheetTitle"
+export * from "./SheetDescription"
