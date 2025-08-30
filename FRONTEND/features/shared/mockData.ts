@@ -3,7 +3,7 @@ import type { Election } from "./types";
 export const mockElections: Election[] = [
   {
     id: 1,
-    title: "Elección de Presidente DAO",
+    title: "Election of President",
     description: "Votación para elegir el nuevo presidente de la organización",
     status: "active",
     startDate: "2024-01-15",
@@ -33,7 +33,7 @@ export const mockElections: Election[] = [
   },
   {
     id: 2,
-    title: "Propuesta de Mejoras",
+    title: "Proposal for Improvements",
     description: "Votación sobre implementación de nuevas características",
     status: "completed",
     startDate: "2024-01-01",
