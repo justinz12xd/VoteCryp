@@ -62,7 +62,7 @@ export function VotingFeature() {
         <Alert>
           <CheckCircle2 className="h-4 w-4" />
           <AlertDescription>
-            Voto registrado exitosamente con encriptación Zama
+            Vote successfully recorded with Zama encryption
           </AlertDescription>
         </Alert>
       );
@@ -71,11 +71,11 @@ export function VotingFeature() {
     if (selectedElection === election.id) {
       return (
         <div className="space-y-3 pt-4 border-t">
-          <h4 className="font-medium">Selecciona tu opción:</h4>
+          <h4 className="font-medium">Select your option:</h4>
           {zamaEncrypting && (
             <Alert>
               <Zap className="h-4 w-4 animate-spin" />
-              <AlertDescription>Encriptando voto con Zama...</AlertDescription>
+              <AlertDescription>Encrypting vote with Zama...</AlertDescription>
             </Alert>
           )}
           {election.candidates.map((candidate: any, idx: number) => (
@@ -100,7 +100,7 @@ export function VotingFeature() {
         className="w-full"
       >
         <Vote className="h-4 w-4 mr-2" />
-        Votar con Encriptación Zama
+        Vote with Zama Encryption
       </Button>
     );
   };
@@ -111,12 +111,12 @@ export function VotingFeature() {
         <Card className="max-w-md w-full mx-4">
           <CardContent className="text-center space-y-4 pt-6">
             <Shield className="h-12 w-12 text-primary mx-auto" />
-            <h2 className="text-2xl font-bold">Acceso de Administrador</h2>
+            <h2 className="text-2xl font-bold">Admin Access</h2>
             <p className="text-muted-foreground">
-              Redirigiendo al panel de administración...
+              Redirecting to the admin dashboard...
             </p>
             <Link href="/admin">
-              <Button className="w-full">Ir al Panel de Admin</Button>
+              <Button className="w-full">Go to Admin Dashboard</Button>
             </Link>
           </CardContent>
         </Card>
@@ -131,24 +131,24 @@ export function VotingFeature() {
           <div className="space-y-6">
             <div className="text-center space-y-4">
               <h2 className="text-3xl font-bold text-foreground">
-                Portal de Votación
+                Voting Portal
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Vota de forma anónima y segura usando encriptación Zama y
-                verificación ENS
+                Vote anonymously and securely using Zama encryption and ENS
+                verification
               </p>
             </div>
 
             <Alert>
               <Lock className="h-4 w-4" />
               <AlertDescription>
-                Tu identidad está verificada via ENS. Todos los votos son
-                encriptados con Zama.
+                Your identity is verified via ENS. All votes are encrypted with
+                Zama.
               </AlertDescription>
             </Alert>
 
             <div className="grid gap-4">
-              <h3 className="text-xl font-semibold">Elecciones Activas</h3>
+              <h3 className="text-xl font-semibold">Active Elections</h3>
               {elections
                 .filter((e) => e.status === "active")
                 .map((election: Election) => (
@@ -166,7 +166,7 @@ export function VotingFeature() {
                             {election.description}
                           </CardDescription>
                         </div>
-                        <Badge variant="secondary">Activa</Badge>
+                        <Badge variant="secondary">Active</Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -174,7 +174,7 @@ export function VotingFeature() {
                         <span>
                           Lisk TX: {election.liskTxHash.slice(0, 10)}...
                         </span>
-                        <span>Votos: {election.totalVotes}</span>
+                        <span>Votes: {election.totalVotes}</span>
                       </div>
 
                       {renderActionArea(election)}
