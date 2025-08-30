@@ -11,5 +11,8 @@ export function buildRoutes(ctrl) {
   r.get("/activeElections", ctrl.activeElections);
   r.get("/electionInfo", ctrl.electionInfo);
   r.get("/contractResults", ctrl.contractResults);
+  // ENS endpoints
+  r.get("/getENSVoter", ctrl.getENSVoter);
+  r.post("/registerENSWithPK", ctrl.registerENSWithPK);
   return r;
 }
