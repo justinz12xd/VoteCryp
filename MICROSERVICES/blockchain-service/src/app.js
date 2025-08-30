@@ -18,12 +18,19 @@ export async function buildApp() {
   app.use(express.json());
 
   // Swagger UI
-  const openapiPath = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../swagger.yaml");
+  const openapiPath = path.resolve(
+    path.dirname(new URL(import.meta.url).pathname),
+    "../swagger.yaml"
+  );
   app.get("/openapi.yaml", (_req, res) => {
     res.setHeader("Content-Type", "application/yaml");
     fs.createReadStream(openapiPath).pipe(res);
   });
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(undefined, { swaggerUrl: "/openapi.yaml" }));
+  app.use(
+    "/docs",
+    swaggerUi.serve,
+    swaggerUi.setup(undefined, { swaggerUrl: "/openapi.yaml" })
+  );
 
   // Domain wiring
   const contract = await createContract();
