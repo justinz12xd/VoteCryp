@@ -14,28 +14,28 @@ export default function FeaturesCard() {
       title: "Lisk Blockchain",
       subtitle: "Full transparency",
       color: "text-blue-500",
-      bg: "bg-blue-100/40"
+      bg: "bg-blue-100/40",
     },
     {
       icon: Lock,
       title: "Zama Encryption",
       subtitle: "Anonymous voting",
       color: "text-green-500",
-      bg: "bg-green-100/40"
+      bg: "bg-green-100/40",
     },
     {
       icon: Zap,
       title: "ENS Identity",
       subtitle: "Verified identity",
       color: "text-yellow-500",
-      bg: "bg-yellow-100/40"
+      bg: "bg-yellow-100/40",
     },
     {
       icon: Shield,
       title: "Scalable Deployment",
       subtitle: "Robust architecture",
       color: "text-purple-500",
-      bg: "bg-purple-100/40"
+      bg: "bg-purple-100/40",
     },
   ];
 
@@ -60,15 +60,17 @@ export default function FeaturesCard() {
               return (
                 <div
                   key={index}
-                  className="flex items-start gap-4 p-4 rounded-2xl border shadow-sm hover:shadow-md transition-all duration-300 bg-card"
+                  className="flex items-start gap-4 p-6 rounded-2xl border shadow-sm hover:shadow-md transition-all duration-300 bg-card"
                 >
                   <div
                     className={`flex items-center justify-center h-12 w-12 rounded-xl ${feature.bg}`}
                   >
-                    <Icon className={`h-6 w-6 ${feature.color}`} />
+                    <Icon className={`h-4 w-4 md:h-6 md:w-6 ${feature.color}`} />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-lg font-semibold">{feature.title}</h4>
+                    <h4 className="text-md lg:text-lg font-semibold">
+                      {feature.title}
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       {feature.subtitle}
                     </p>

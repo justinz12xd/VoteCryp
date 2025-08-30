@@ -1,9 +1,13 @@
-import { Shield, Network, Lock, Code } from "lucide-react";
+import { Shield } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="mt-10 mb-6 border-t pt-6" role="contentinfo" aria-label="Footer">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <footer
+      className="mt-10 mb-6 border-t pt-6"
+      role="contentinfo"
+      aria-label="Footer"
+    >
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4">
         <div>
           <div className="flex items-center gap-3">
             <Shield className="h-8 w-8 text-primary ml-6" aria-hidden="true" />
