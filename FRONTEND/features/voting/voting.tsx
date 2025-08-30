@@ -28,13 +28,20 @@ export function VotingFeature() {
   const castVote = async (electionId: number, candidateIndex: number) => {
     try {
       setZamaEncrypting(true);
-      // Backend route will handle register/login and encryption+submit
-      const cedula = "demo-voter";
-      const fingerprintCode = "demo-code";
+      // Read session from cookie-backed API
+      const sessRes = await fetch("/api/auth/wallet", { cache: "no-store" });
+      const sess = await sessRes.json();
+      const cedula = sess?.cedula || "demo-voter";
+      const fingerprintCode = sess?.fingerprintCode || "demo-code";
       const res = await fetch("/api/submit-vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ electionId, candidateIndex, cedula, fingerprintCode }),
+        body: JSON.stringify({
+          electionId,
+          candidateIndex,
+          cedula,
+          fingerprintCode,
+        }),
       });
       const data = await res.json();
       setZamaEncrypting(false);

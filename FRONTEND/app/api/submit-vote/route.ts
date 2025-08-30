@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
     // Ensure ENS is registered (idempotent on backend/contract)
     const ensName = `${cedula}.eth`;
-  await fetch(`${GO_API_URL}/api/register-ens`, {
+    await fetch(`${GO_API_URL}/api/register-ens`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
