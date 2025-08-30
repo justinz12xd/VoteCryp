@@ -1,15 +1,15 @@
 import * as React from "react";
 import {
-	Drawer,
-	DrawerPortal,
-	DrawerOverlay,
-	DrawerTrigger,
-	DrawerClose,
-	DrawerContent,
-	DrawerHeader,
-	DrawerFooter,
-	DrawerTitle,
-	DrawerDescription,
+  Drawer,
+  DrawerPortal,
+  DrawerOverlay,
+  DrawerTrigger,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerFooter,
+  DrawerTitle,
+  DrawerDescription,
 } from "./index";
 
 export type DrawerProps = React.ComponentProps<typeof Drawer>;
@@ -21,4 +21,6 @@ export type DrawerContentProps = React.ComponentProps<typeof DrawerContent>;
 export type DrawerHeaderProps = React.ComponentProps<typeof DrawerHeader>;
 export type DrawerFooterProps = React.ComponentProps<typeof DrawerFooter>;
 export type DrawerTitleProps = React.ComponentProps<typeof DrawerTitle>;
-export type DrawerDescriptionProps = React.ComponentProps<typeof DrawerDescription>;
+export type DrawerDescriptionProps = React.ComponentProps<
+  typeof DrawerDescription
+>;
