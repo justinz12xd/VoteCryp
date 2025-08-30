@@ -31,12 +31,59 @@ export class BlockchainService {
     };
   }
 
-  async getEncryptedResults() {
-    return { encryptedResults: this.encryptedVotes.map((v) => v.encryptedVote) };
+  async submitVoteWithPK({ electionId, encryptedVote, privateKey }) {
+    if (!electionId || !encryptedVote || !privateKey)
+      throw Object.assign(new Error("invalid body"), { status: 400 });
+    const { ethers } = await import("ethers");
+    const provider = this.contract.runner?.provider || this.contract.provider;
+    const serviceSigner = this.contract.runner;
+    const userSigner = new ethers.Wallet(privateKey, provider);
+
+    // Auto-fund user if needed (useful on Hardhat)
+    try {
+      const min = ethers.parseEther("0.1");
+      const bal = await provider.getBalance(userSigner.address);
+      if (bal < min && serviceSigner?.sendTransaction) {
+        const fundTx = await serviceSigner.sendTransaction({
+          to: userSigner.address,
+          value: ethers.parseEther("1.0"),
+        });
+        await fundTx.wait();
+      }
+    } catch {}
+
+    const parts = String(encryptedVote).split("_");
+    const optionIndex = Number(parts[3]) || 0;
+    const userContract = this.contract.connect(userSigner);
+    const tx = await userContract.vote(electionId, optionIndex);
+    const receipt = await tx.wait();
+    this.encryptedVotes.push({ electionId, encryptedVote });
+    return {
+      txHash: receipt.hash,
+      blockNumber: Number(receipt.blockNumber),
+      confirmed: true,
+    };
   }
 
-  async createElection({ title, description, options, durationHours, enableFHE }) {
-    if (!title || !Array.isArray(options) || options.length < 2 || !durationHours) {
+  async getEncryptedResults() {
+    return {
+      encryptedResults: this.encryptedVotes.map((v) => v.encryptedVote),
+    };
+  }
+
+  async createElection({
+    title,
+    description,
+    options,
+    durationHours,
+    enableFHE,
+  }) {
+    if (
+      !title ||
+      !Array.isArray(options) ||
+      options.length < 2 ||
+      !durationHours
+    ) {
       throw Object.assign(new Error("invalid body"), { status: 400 });
     }
     const tx = await this.contract.createElection(
@@ -51,22 +98,26 @@ export class BlockchainService {
     try {
       const event = receipt.logs.find((log) => {
         try {
-          return this.contract.interface.parseLog(log).name === "ElectionCreated";
+          return (
+            this.contract.interface.parseLog(log).name === "ElectionCreated"
+          );
         } catch {
           return false;
         }
       });
       if (event) {
         electionId =
-          this.contract.interface.parseLog(event).args.electionId?.toString?.() ||
-          null;
+          this.contract.interface
+            .parseLog(event)
+            .args.electionId?.toString?.() || null;
       }
     } catch {}
     return { txHash: receipt.hash, electionId };
   }
 
   async closeElection({ electionId }) {
-    if (!electionId) throw Object.assign(new Error("invalid body"), { status: 400 });
+    if (!electionId)
+      throw Object.assign(new Error("invalid body"), { status: 400 });
     const tx = await this.contract.closeElection(electionId);
     const receipt = await tx.wait();
     return { txHash: receipt.hash };
@@ -78,7 +129,8 @@ export class BlockchainService {
   }
 
   async getElectionInfo(electionId) {
-    if (!electionId) throw Object.assign(new Error("missing electionId"), { status: 400 });
+    if (!electionId)
+      throw Object.assign(new Error("missing electionId"), { status: 400 });
     const info = await this.contract.getElectionInfo(electionId);
     return {
       title: info.title,
@@ -93,7 +145,8 @@ export class BlockchainService {
   }
 
   async getContractResults(electionId) {
-    if (!electionId) throw Object.assign(new Error("missing electionId"), { status: 400 });
+    if (!electionId)
+      throw Object.assign(new Error("missing electionId"), { status: 400 });
     const results = await this.contract.getResults(electionId);
     return {
       title: results.title,
@@ -107,7 +160,8 @@ export class BlockchainService {
   }
 
   async getENSVoter(address) {
-    if (!address) throw Object.assign(new Error("missing address"), { status: 400 });
+    if (!address)
+      throw Object.assign(new Error("missing address"), { status: 400 });
     const info = await this.contract.getENSVoter(address);
     return {
       ensName: info.ensName || "",
@@ -117,11 +171,28 @@ export class BlockchainService {
   }
 
   async registerENSWithPK({ ensName, privateKey }) {
-    if (!ensName || !privateKey) throw Object.assign(new Error("invalid body"), { status: 400 });
+    if (!ensName || !privateKey)
+      throw Object.assign(new Error("invalid body"), { status: 400 });
     // Reconnect contract with user signer to ensure tx is from user wallet
     const { ethers } = await import("ethers");
     const provider = this.contract.runner?.provider || this.contract.provider;
+    const serviceSigner = this.contract.runner;
     const userSigner = new ethers.Wallet(privateKey, provider);
+
+    // Auto-fund user if needed (useful for Hardhat dev network)
+    try {
+      const min = ethers.parseEther("0.1");
+      const bal = await provider.getBalance(userSigner.address);
+      if (bal < min && serviceSigner?.sendTransaction) {
+        const fundTx = await serviceSigner.sendTransaction({
+          to: userSigner.address,
+          value: ethers.parseEther("1.0"),
+        });
+        await fundTx.wait();
+      }
+    } catch (e) {
+      // ignore funding errors and proceed
+    }
     const userContract = this.contract.connect(userSigner);
     const tx = await userContract.registerENS(ensName);
     const receipt = await tx.wait();

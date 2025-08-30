@@ -32,6 +32,12 @@ func (s *ExternalServices) SubmitVote(address, encryptedVote, electionID string)
 	return httpjson.Post(url, body)
 }
 
+func (s *ExternalServices) SubmitVoteWithPK(encryptedVote, electionID, privHex string) (map[string]interface{}, int, error) {
+	url := strings.TrimRight(s.cfg.BlockchainServiceURL, "/") + "/submitVoteWithPK"
+	body := []byte(fmt.Sprintf(`{"electionId":"%s","encryptedVote":"%s","privateKey":"%s"}`, electionID, encryptedVote, privHex))
+	return httpjson.Post(url, body)
+}
+
 func (s *ExternalServices) GetEncryptedResults() (map[string]interface{}, int, error) {
 	url := strings.TrimRight(s.cfg.BlockchainServiceURL, "/") + "/getEncryptedResults"
 	return httpjson.Get(url)
