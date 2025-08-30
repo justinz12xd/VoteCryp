@@ -1,182 +1,309 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Voting Contract", function () {
-  let Voting;
-  let voting;
-  let admin;
-  let user1;
-  let user2;
-  let user3;
+describe("VotingContract - Funciones Principales", function () {
+  let VotingContract;
+  let votingContract;
+  let owner;
+  let voter1;
+  let voter2;
+  let voter3;
+  let addrs;
 
   beforeEach(async function () {
-    [admin, user1, user2, user3] = await ethers.getSigners();
-    
-    Voting = await ethers.getContractFactory("Voting");
-    voting = await Voting.deploy();
-    await voting.deployed();
+    // Obtener signers
+    [owner, voter1, voter2, voter3, ...addrs] = await ethers.getSigners();
+
+    // Deploy del contrato
+    VotingContract = await ethers.getContractFactory("VotingContract");
+    votingContract = await VotingContract.deploy();
+    await votingContract.waitForDeployment();
   });
 
-  describe("Deployment", function () {
-    it("Should set the deployer as admin", async function () {
-      expect(await voting.admin()).to.equal(admin.address);
+  describe("Deploy y configuración inicial", function () {
+    it("Debe establecer el owner correcto", async function () {
+      expect(await votingContract.owner()).to.equal(owner.address);
     });
 
-    it("Should initialize with zero elections", async function () {
-      expect(await voting.electionCount()).to.equal(0);
+    it("Debe iniciar con 0 elecciones", async function () {
+      expect(await votingContract.getTotalElections()).to.equal(0);
+    });
+
+    it("Debe tener 0 elecciones activas", async function () {
+      const activeElections = await votingContract.getActiveElections();
+      expect(activeElections.length).to.equal(0);
     });
   });
 
-  describe("Election Creation", function () {
-    it("Should allow admin to create election", async function () {
-      const title = "Test Election";
-      const options = ["Option A", "Option B", "Option C"];
-      const duration = 3600; // 1 hour
-
-      await expect(voting.createElection(title, options, duration))
-        .to.emit(voting, "ElectionCreated")
-        .withArgs(1, title, admin.address);
-
-      expect(await voting.electionCount()).to.equal(1);
+  describe("Registro ENS", function () {
+    it("Debe permitir registrar ENS", async function () {
+      await votingContract.connect(voter1).registerENS("voter1.eth");
+      
+      const voterInfo = await votingContract.getENSVoter(voter1.address);
+      expect(voterInfo.ensName).to.equal("voter1.eth");
+      expect(voterInfo.isVerified).to.equal(true);
     });
 
-    it("Should not allow non-admin to create election", async function () {
-      const title = "Test Election";
-      const options = ["Option A", "Option B"];
-      const duration = 3600;
-
+    it("No debe permitir ENS vacío", async function () {
       await expect(
-        voting.connect(user1).createElection(title, options, duration)
-      ).to.be.revertedWith("Only admin can perform this action");
+        votingContract.connect(voter1).registerENS("")
+      ).to.be.revertedWith("ENS name cannot be empty");
     });
 
-    it("Should reject empty title", async function () {
+    it("No debe permitir registro duplicado", async function () {
+      await votingContract.connect(voter1).registerENS("voter1.eth");
+      
       await expect(
-        voting.createElection("", ["Option A", "Option B"], 3600)
+        votingContract.connect(voter1).registerENS("voter1-2.eth")
+      ).to.be.revertedWith("Already registered");
+    });
+
+    it("No debe permitir ENS duplicado", async function () {
+      await votingContract.connect(voter1).registerENS("voter1.eth");
+      
+      await expect(
+        votingContract.connect(voter2).registerENS("voter1.eth")
+      ).to.be.revertedWith("ENS name already taken");
+    });
+  });
+
+  describe("createElection - Función Principal", function () {
+    it("Debe crear elección correctamente", async function () {
+      const title = "Elección de Prueba";
+      const description = "Una elección para testing";
+      const options = ["Opción A", "Opción B", "Opción C"];
+      const duration = 24; // 24 horas
+      const enableFHE = false;
+
+      const tx = await votingContract.createElection(
+        title,
+        description,
+        options,
+        duration,
+        enableFHE
+      );
+
+      // Verificar evento
+      await expect(tx)
+        .to.emit(votingContract, "ElectionCreated");
+
+      // Verificar que se creó
+      expect(await votingContract.getTotalElections()).to.equal(1);
+      
+      // Verificar información de la elección
+      const electionInfo = await votingContract.getElectionInfo(1);
+      expect(electionInfo.title).to.equal(title);
+      expect(electionInfo.description).to.equal(description);
+      expect(electionInfo.creator).to.equal(owner.address);
+      expect(electionInfo.optionCount).to.equal(3);
+    });
+
+    it("No debe permitir título vacío", async function () {
+      await expect(
+        votingContract.createElection("", "Desc", ["A", "B"], 24, false)
       ).to.be.revertedWith("Title cannot be empty");
     });
 
-    it("Should reject less than 2 options", async function () {
+    it("Debe requerir al menos 2 opciones", async function () {
       await expect(
-        voting.createElection("Test", ["Option A"], 3600)
-      ).to.be.revertedWith("At least 2 options required");
+        votingContract.createElection("Título", "Desc", ["Solo una"], 24, false)
+      ).to.be.revertedWith("Must have at least 2 options");
     });
 
-    it("Should reject zero duration", async function () {
+    it("Debe requerir duración positiva", async function () {
       await expect(
-        voting.createElection("Test", ["Option A", "Option B"], 0)
+        votingContract.createElection("Título", "Desc", ["A", "B"], 0, false)
       ).to.be.revertedWith("Duration must be positive");
     });
   });
 
-  describe("Voting", function () {
+  describe("vote - Función Principal", function () {
+    let electionId;
+
     beforeEach(async function () {
-      // Create a test election
-      await voting.createElection("Test Election", ["Option A", "Option B"], 3600);
+      // Registrar votantes
+      await votingContract.connect(voter1).registerENS("voter1.eth");
+      await votingContract.connect(voter2).registerENS("voter2.eth");
+      
+      // Crear elección
+      await votingContract.createElection(
+        "Test Election",
+        "Testing voting",
+        ["Option A", "Option B"],
+        24, // 24 horas
+        false // Sin FHE por ahora
+      );
+      electionId = 1;
     });
 
-    it("Should allow users to vote", async function () {
-      await expect(voting.connect(user1).vote(1, 0))
-        .to.emit(voting, "Voted")
-        .withArgs(1, user1.address, 0);
+    it("Debe permitir votar a usuario registrado", async function () {
+      const tx = await votingContract.connect(voter1).vote(electionId, 0);
+      
+      // Verificar evento
+      await expect(tx)
+        .to.emit(votingContract, "VoteCast");
 
-      expect(await voting.hasUserVoted(1, user1.address)).to.be.true;
+      // Verificar que votó
+      expect(await votingContract.hasVotedInElection(electionId, voter1.address)).to.equal(true);
+      expect(await votingContract.hasENSVoted(electionId, "voter1.eth")).to.equal(true);
     });
 
-    it("Should not allow double voting", async function () {
-      await voting.connect(user1).vote(1, 0);
+    it("No debe permitir votar sin registro ENS", async function () {
+      await expect(
+        votingContract.connect(voter3).vote(electionId, 0)
+      ).to.be.revertedWith("Must be verified with ENS");
+    });
+
+    it("No debe permitir double voting", async function () {
+      await votingContract.connect(voter1).vote(electionId, 0);
       
       await expect(
-        voting.connect(user1).vote(1, 1)
-      ).to.be.revertedWith("You have already voted");
+        votingContract.connect(voter1).vote(electionId, 1)
+      ).to.be.revertedWith("Address already voted");
     });
 
-    it("Should reject invalid option", async function () {
+    it("No debe permitir opción inválida", async function () {
       await expect(
-        voting.connect(user1).vote(1, 5)
+        votingContract.connect(voter1).vote(electionId, 999)
       ).to.be.revertedWith("Invalid option");
     });
 
-    it("Should reject voting on non-existent election", async function () {
+    it("Debe incrementar contadores correctamente", async function () {
+      await votingContract.connect(voter1).vote(electionId, 0);
+      await votingContract.connect(voter2).vote(electionId, 1);
+
+      const results = await votingContract.getResults(electionId);
+      expect(results.totalVotes).to.equal(2);
+      expect(results.voteCounts[0]).to.equal(1);
+      expect(results.voteCounts[1]).to.equal(1);
+    });
+  });
+
+  describe("closeElection - Función Principal", function () {
+    let electionId;
+
+    beforeEach(async function () {
+      await votingContract.createElection(
+        "Test Election",
+        "Testing closing",
+        ["Option A", "Option B"],
+        24,
+        false
+      );
+      electionId = 1;
+    });
+
+    it("Debe permitir al creador cerrar la elección", async function () {
+      const tx = await votingContract.closeElection(electionId);
+      
+      await expect(tx)
+        .to.emit(votingContract, "ElectionClosed");
+
+      const electionInfo = await votingContract.getElectionInfo(electionId);
+      expect(electionInfo.status).to.equal(1); // Closed status
+    });
+
+    it("No debe permitir a otros cerrar la elección", async function () {
       await expect(
-        voting.connect(user1).vote(999, 0)
+        votingContract.connect(voter1).closeElection(electionId)
+      ).to.be.revertedWith("Only creator or owner can close election");
+    });
+
+    it("No debe permitir cerrar elección ya cerrada", async function () {
+      await votingContract.closeElection(electionId);
+      
+      await expect(
+        votingContract.closeElection(electionId)
+      ).to.be.revertedWith("Election already closed");
+    });
+  });
+
+  describe("getResults - Función Principal", function () {
+    let electionId;
+
+    beforeEach(async function () {
+      // Registrar votantes
+      await votingContract.connect(voter1).registerENS("voter1.eth");
+      await votingContract.connect(voter2).registerENS("voter2.eth");
+      
+      // Crear elección
+      await votingContract.createElection(
+        "Results Test",
+        "Testing results",
+        ["Candidate A", "Candidate B", "Candidate C"],
+        24,
+        false
+      );
+      electionId = 1;
+
+      // Votar
+      await votingContract.connect(voter1).vote(electionId, 0);
+      await votingContract.connect(voter2).vote(electionId, 2);
+    });
+
+    it("Debe retornar resultados correctos", async function () {
+      const results = await votingContract.getResults(electionId);
+      
+      expect(results.title).to.equal("Results Test");
+      expect(results.description).to.equal("Testing results");
+      expect(results.optionNames).to.deep.equal(["Candidate A", "Candidate B", "Candidate C"]);
+      expect(results.voteCounts[0]).to.equal(1);
+      expect(results.voteCounts[1]).to.equal(0);
+      expect(results.voteCounts[2]).to.equal(1);
+      expect(results.totalVotes).to.equal(2);
+      expect(results.fheEnabled).to.equal(false);
+    });
+
+    it("Debe fallar para elección inexistente", async function () {
+      await expect(
+        votingContract.getResults(999)
       ).to.be.revertedWith("Election does not exist");
     });
   });
 
-  describe("Election Management", function () {
-    beforeEach(async function () {
-      await voting.createElection("Test Election", ["Option A", "Option B"], 1); // 1 second duration
-    });
+  describe("Integración de funciones principales", function () {
+    it("Flujo completo: crear -> votar -> cerrar -> resultados", async function () {
+      // 1. Registrar votantes
+      await votingContract.connect(voter1).registerENS("alice.eth");
+      await votingContract.connect(voter2).registerENS("bob.eth");
 
-    it("Should allow admin to close election manually", async function () {
-      await expect(voting.closeElection(1))
-        .to.emit(voting, "ElectionClosed")
-        .withArgs(1);
-    });
+      // 2. Crear elección
+      await votingContract.createElection(
+        "Elección Completa",
+        "Prueba de flujo completo",
+        ["Si", "No"],
+        24,
+        false
+      );
+      const electionId = 1;
 
-    it("Should auto-close expired elections", async function () {
-      // Wait for election to expire
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      await expect(voting.autoCloseElection(1))
-        .to.emit(voting, "ElectionClosed")
-        .withArgs(1);
-    });
+      // 3. Verificar elección activa
+      let activeElections = await votingContract.getActiveElections();
+      expect(activeElections.length).to.equal(1);
+      expect(activeElections[0]).to.equal(electionId);
 
-    it("Should not allow voting on closed election", async function () {
-      await voting.closeElection(1);
-      
-      await expect(
-        voting.connect(user1).vote(1, 0)
-      ).to.be.revertedWith("Election is closed");
-    });
-  });
+      // 4. Votar
+      await votingContract.connect(voter1).vote(electionId, 0); // Si
+      await votingContract.connect(voter2).vote(electionId, 1); // No
 
-  describe("Results and Queries", function () {
-    beforeEach(async function () {
-      await voting.createElection("Test Election", ["Option A", "Option B", "Option C"], 3600);
-      
-      // Cast some votes
-      await voting.connect(user1).vote(1, 0);
-      await voting.connect(user2).vote(1, 0);
-      await voting.connect(user3).vote(1, 1);
-    });
+      // 5. Verificar resultados antes del cierre
+      let results = await votingContract.getResults(electionId);
+      expect(results.totalVotes).to.equal(2);
+      expect(results.status).to.equal(0); // Active
 
-    it("Should return correct results", async function () {
-      const results = await voting.getResults(1);
-      expect(results[0]).to.equal(2); // Option A: 2 votes
-      expect(results[1]).to.equal(1); // Option B: 1 vote
-      expect(results[2]).to.equal(0); // Option C: 0 votes
-    });
+      // 6. Cerrar elección
+      await votingContract.closeElection(electionId);
 
-    it("Should return election details", async function () {
-      const details = await voting.getElectionDetails(1);
-      expect(details.title).to.equal("Test Election");
-      expect(details.options).to.deep.equal(["Option A", "Option B", "Option C"]);
-      expect(details.creator).to.equal(admin.address);
-      expect(details.isActive).to.be.true;
-    });
+      // 7. Verificar que ya no está activa
+      activeElections = await votingContract.getActiveElections();
+      expect(activeElections.length).to.equal(0);
 
-    it("Should check voting status correctly", async function () {
-      expect(await voting.hasUserVoted(1, user1.address)).to.be.true;
-      expect(await voting.hasUserVoted(1, admin.address)).to.be.false;
-    });
-  });
-
-  describe("Admin Functions", function () {
-    it("Should allow admin change", async function () {
-      await expect(voting.changeAdmin(user1.address))
-        .to.emit(voting, "AdminChanged")
-        .withArgs(user1.address);
-
-      expect(await voting.admin()).to.equal(user1.address);
-    });
-
-    it("Should not allow non-admin to change admin", async function () {
-      await expect(
-        voting.connect(user1).changeAdmin(user2.address)
-      ).to.be.revertedWith("Only admin can perform this action");
+      // 8. Verificar resultados finales
+      results = await votingContract.getResults(electionId);
+      expect(results.status).to.equal(1); // Closed
+      expect(results.totalVotes).to.equal(2);
+      expect(results.voteCounts[0]).to.equal(1); // Si
+      expect(results.voteCounts[1]).to.equal(1); // No
     });
   });
 });
