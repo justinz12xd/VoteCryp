@@ -7,7 +7,7 @@ import HowItWorks from "./components/HowItWorks";
 export function Home() {
   return (
     <div className="bg-background">
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-10 py-12">
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <Hero />
           <FeaturesCard />

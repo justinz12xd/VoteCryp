@@ -6,18 +6,10 @@ import { usePathname } from "next/navigation";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import WalletInfo from "@/features/shared/components/WalletInfo";
-import useWallet from "@/features/shared/useWallet";
 
 export function Navigation(): React.ReactNode {
-  // Determine current route; hooks must be called unconditionally
   const pathname = usePathname();
 
-  const {
-    ensName = "",
-    walletAddress = "",
-    loading: walletLoading,
-  } = useWallet();
 
   // Hide global site header on dashboard/results pages to avoid double headers
   if (pathname?.startsWith("/results")) {
@@ -33,7 +25,11 @@ export function Navigation(): React.ReactNode {
               {/* Decorative branding icon - hide from AT */}
               <Shield className="h-8 w-8 text-primary" aria-hidden="true" />
               {/* Make the site title a link to home for keyboard users */}
-              <Link href="/" aria-label="VoteCrypt home" className="text-2xl font-bold text-foreground focus:outline-none">
+              <Link
+                href="/"
+                aria-label="VoteCrypt home"
+                className="text-2xl font-bold text-foreground focus:outline-none"
+              >
                 VoteCrypt
               </Link>
             </div>
@@ -43,11 +39,9 @@ export function Navigation(): React.ReactNode {
               <Link href="/results">
                 <Button variant="outline">See results</Button>
               </Link>
-              {/* show wallet info once hook finishes loading to avoid flicker */}
-              <WalletInfo
-                ensName={walletLoading ? "" : ensName}
-                walletAddress={walletLoading ? "" : walletAddress}
-              />
+              <Link href="/voting">
+                <Button variant="outline">Vote now</Button>
+              </Link>
             </div>
           </nav>
         </div>
