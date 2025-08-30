@@ -1,23 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Shield, Vote, BarChart3, Settings, Menu, Network, CheckCircle2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Shield,
+  Vote,
+  BarChart3,
+  Settings,
+  Menu,
+  Network,
+  CheckCircle2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface NavigationProps {
-  isAdmin?: boolean
-  ensName?: string
-  walletAddress?: string
+  isAdmin?: boolean;
+  ensName?: string;
+  walletAddress?: string;
 }
 
-export function Navigation({ isAdmin = false, ensName, walletAddress }: NavigationProps) {
-  const pathname = usePathname()
-  const [isOpen, setIsOpen] = useState(false)
+export function Navigation({
+  isAdmin = false,
+  ensName,
+  walletAddress,
+}: NavigationProps) {
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
   const voterRoutes = [
     {
@@ -32,7 +44,7 @@ export function Navigation({ isAdmin = false, ensName, walletAddress }: Navigati
       icon: BarChart3,
       description: "Ver resultados en tiempo real",
     },
-  ]
+  ];
 
   const adminRoutes = [
     {
@@ -41,9 +53,9 @@ export function Navigation({ isAdmin = false, ensName, walletAddress }: Navigati
       icon: Settings,
       description: "Gestionar elecciones y votantes",
     },
-  ]
+  ];
 
-  const routes = isAdmin ? [...voterRoutes, ...adminRoutes] : voterRoutes
+  const routes = isAdmin ? [...voterRoutes, ...adminRoutes] : voterRoutes;
 
   const NavContent = () => (
     <div className="space-y-6">
@@ -51,7 +63,9 @@ export function Navigation({ isAdmin = false, ensName, walletAddress }: Navigati
         <Shield className="h-8 w-8 text-primary" />
         <div>
           <h2 className="text-lg font-bold">VoteChain</h2>
-          <p className="text-xs text-muted-foreground">Sistema Descentralizado</p>
+          <p className="text-xs text-muted-foreground">
+            Sistema Descentralizado
+          </p>
         </div>
       </div>
 
@@ -84,8 +98,8 @@ export function Navigation({ isAdmin = false, ensName, walletAddress }: Navigati
 
       <nav className="space-y-2">
         {routes.map((route) => {
-          const Icon = route.icon
-          const isActive = pathname === route.href
+          const Icon = route.icon;
+          const isActive = pathname === route.href;
 
           return (
             <Link
@@ -94,16 +108,19 @@ export function Navigation({ isAdmin = false, ensName, walletAddress }: Navigati
               onClick={() => setIsOpen(false)}
               className={cn(
                 "flex items-center space-x-3 p-3 rounded-lg transition-colors hover:bg-muted",
-                isActive && "bg-primary/10 text-primary border border-primary/20",
+                isActive &&
+                  "bg-primary/10 text-primary border border-primary/20"
               )}
             >
               <Icon className="h-5 w-5" />
               <div>
                 <div className="font-medium">{route.label}</div>
-                <div className="text-xs text-muted-foreground">{route.description}</div>
+                <div className="text-xs text-muted-foreground">
+                  {route.description}
+                </div>
               </div>
             </Link>
-          )
+          );
         })}
       </nav>
 
@@ -116,7 +133,7 @@ export function Navigation({ isAdmin = false, ensName, walletAddress }: Navigati
         </div>
       </div>
     </div>
-  )
+  );
 
   return (
     <>
@@ -141,5 +158,5 @@ export function Navigation({ isAdmin = false, ensName, walletAddress }: Navigati
         </div>
       </div>
     </>
-  )
+  );
 }
