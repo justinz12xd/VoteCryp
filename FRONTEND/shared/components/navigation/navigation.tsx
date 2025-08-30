@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +10,12 @@ import WalletInfo from "@/features/shared/components/WalletInfo";
 import useWallet from "@/features/shared/useWallet";
 
 export function Navigation(): React.ReactNode {
+  // Hide global site header on dashboard/results pages to avoid double headers
+  const pathname = usePathname();
+  if (pathname?.startsWith("/results")) {
+    return null;
+  }
+
   const {
     ensName = "",
     walletAddress = "",

@@ -19,19 +19,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+  <body className={`min-h-screen flex flex-col font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         {/* Skip link visible to keyboard users */}
         <a href="#maincontent" className="sr-only">Skip to main content</a>
 
         <Navigation />
 
-        {/* Main landmark for screen readers and skip-to-main target */}
-        <main id="maincontent" tabIndex={-1}>
+  {/* Main landmark for screen readers and skip-to-main target */}
+  <main id="maincontent" tabIndex={-1} className="flex-1">
           {children}
         </main>
 
         <Analytics />
-        <Footer />
+  <Footer />
       </body>
     </html>
   );
