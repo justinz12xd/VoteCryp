@@ -24,7 +24,14 @@ const openapi = {
         responses: {
           200: {
             description: "OK",
-            content: { "application/json": { schema: { type: "object", properties: { ok: { type: "boolean" } } } } },
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: { ok: { type: "boolean" } },
+                },
+              },
+            },
           },
         },
       },

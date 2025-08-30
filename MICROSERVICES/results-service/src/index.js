@@ -13,7 +13,9 @@ const openapi = {
   info: { title: "Results Service API", version: "1.0.0" },
   servers: [{ url: "/" }],
   paths: {
-    "/health": { get: { summary: "Health", responses: { 200: { description: "OK" } } } },
+    "/health": {
+      get: { summary: "Health", responses: { 200: { description: "OK" } } },
+    },
     "/decryptResults": {
       post: {
         summary: "Decrypt tallied results (mock)",
@@ -24,7 +26,12 @@ const openapi = {
               schema: {
                 type: "object",
                 required: ["encryptedResults"],
-                properties: { encryptedResults: { type: "array", items: { type: "string" } } },
+                properties: {
+                  encryptedResults: {
+                    type: "array",
+                    items: { type: "string" },
+                  },
+                },
               },
             },
           },
@@ -32,7 +39,20 @@ const openapi = {
         responses: {
           200: {
             description: "Decrypted results array",
-            content: { "application/json": { schema: { type: "object", properties: { decryptedResults: { type: "array", items: { type: "integer" } }, success: { type: "boolean" } } } } },
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    decryptedResults: {
+                      type: "array",
+                      items: { type: "integer" },
+                    },
+                    success: { type: "boolean" },
+                  },
+                },
+              },
+            },
           },
           400: { description: "Invalid body" },
         },

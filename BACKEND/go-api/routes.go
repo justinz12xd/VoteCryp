@@ -16,13 +16,13 @@ func registerRoutes(app *fiber.App) {
 	app.Get("/openapi.json", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"openapi": "3.0.3",
-			"info": fiber.Map{"title": "Go API (Orchestrator)", "version": "1.0.0"},
+			"info":    fiber.Map{"title": "Go API (Orchestrator)", "version": "1.0.0"},
 			"paths": fiber.Map{
-				"/health": fiber.Map{"get": fiber.Map{"summary": "Health", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
-				"/api/register": fiber.Map{"post": fiber.Map{"summary": "Register a user", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
-				"/api/login": fiber.Map{"post": fiber.Map{"summary": "Login and get JWT", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/health":         fiber.Map{"get": fiber.Map{"summary": "Health", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/api/register":   fiber.Map{"post": fiber.Map{"summary": "Register a user", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/api/login":      fiber.Map{"post": fiber.Map{"summary": "Login and get JWT", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
 				"/api/submitVote": fiber.Map{"post": fiber.Map{"summary": "Encrypt + submit vote", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
-				"/api/results": fiber.Map{"get": fiber.Map{"summary": "Get tallied results", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
+				"/api/results":    fiber.Map{"get": fiber.Map{"summary": "Get tallied results", "responses": fiber.Map{"200": fiber.Map{"description": "OK"}}}},
 			},
 		})
 	})
