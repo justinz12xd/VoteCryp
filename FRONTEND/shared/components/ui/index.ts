@@ -35,7 +35,7 @@ export * from "./sidebar";
 export * from "./skeleton";
 export * from "./slider";
 export { Toaster as SonnerToaster } from "./sonner";
-export * from "./switch";
+export * from "./switch/switch";
 export * from "./table";
 export * from "./tabs";
 export * from "./textarea";
