@@ -37,7 +37,7 @@ export default function DashboardFeature() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="ghost" size="sm" className="hover:bg-muted">
+              <Button variant="ghost" size="sm" className="hover:bg-black">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
@@ -46,14 +46,6 @@ export default function DashboardFeature() {
               <Shield className="h-8 w-8 text-primary" />
               <h1 className="text-2xl font-bold">Voting Dashboard</h1>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Network className="h-3 w-3" /> Lisk Mainnet
-            </Badge>
-            <Badge variant="secondary" className="flex items-center gap-1 text-green-600">
-              <CheckCircle2 className="h-3 w-3" /> Live
-            </Badge>
           </div>
         </div>
       </header>
