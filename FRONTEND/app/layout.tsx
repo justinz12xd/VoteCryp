@@ -4,7 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Navigation } from "@/shared/components/navigation";
-import {Footer} from "@/shared/components/footer";
+import { Footer } from "@/shared/components/footer";
 
 export const metadata: Metadata = {
   title: "VoteCrypt",
@@ -19,19 +19,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-  <body className={`min-h-screen flex flex-col font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+      <body
+        className={`min-h-screen flex flex-col font-sans ${GeistSans.variable} ${GeistMono.variable}`}
+      >
         {/* Skip link visible to keyboard users */}
-        <a href="#maincontent" className="sr-only">Skip to main content</a>
+        <a href="#maincontent" className="sr-only">
+          Skip to main content
+        </a>
 
         <Navigation />
 
-  {/* Main landmark for screen readers and skip-to-main target */}
-  <main id="maincontent" tabIndex={-1} className="flex-1">
+        {/* Main landmark for screen readers and skip-to-main target */}
+        <main id="maincontent" tabIndex={-1} className="flex-1">
           {children}
         </main>
 
         <Analytics />
-  <Footer />
+        <Footer />
       </body>
     </html>
   );
