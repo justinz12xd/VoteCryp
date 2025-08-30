@@ -1,24 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Simple mock: GET returns current mock auth state, POST attempts to authenticate
-export async function GET() {
-  const mockAddress = "0x123456789abcdef123456789abcdef1234567890";
-  const mockEns = "voter.eth";
+const COOKIE_NAME = "vc_session";
 
-  return NextResponse.json({
-    connected: true,
-    sessionAddress: mockAddress,
-    walletAddress: mockAddress,
-    ensName: mockEns,
-  });
+type Session = {
+  address: string;
+  ens: string;
+  cedula: string;
+  fingerprintCode: string;
+};
+
+function makeAddressFromCedula(cedula: string) {
+  // Tiny deterministic pseudo-address for demo only (not secure)
+  const base = Buffer.from(cedula).toString("hex").padEnd(40, "0").slice(0, 40);
+  return "0x" + base;
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const cookie = req.cookies.get(COOKIE_NAME)?.value;
+    if (!cookie) {
+      return NextResponse.json({ connected: false });
+    }
+    const session = JSON.parse(cookie) as Partial<Session>;
+    return NextResponse.json({
+      connected: true,
+      sessionAddress: session.address,
+      walletAddress: session.address,
+      ensName: session.ens,
+      cedula: session.cedula,
+      fingerprintCode: session.fingerprintCode,
+    });
+  } catch {
+    return NextResponse.json({ connected: false });
+  }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { cedula, fingerprintCode } = body;
+    const cedula = String(body?.cedula || "").trim();
+    const fingerprintCode = String(body?.fingerprintCode || "").trim();
 
-    // Basic validation - in real backend validate against DB or external service
     if (!cedula || !fingerprintCode) {
       return NextResponse.json(
         { error: "missing id or fingerprint" },
@@ -26,16 +48,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // For demo purposes, accept any values and return a mock wallet
-    const mockAddress = "0x123456789abcdef123456789abcdef1234567890";
-    const mockEns = "voter.eth";
+    const address = makeAddressFromCedula(cedula);
+    const ens = `${cedula}.eth`;
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       connected: true,
-      sessionAddress: mockAddress,
-      walletAddress: mockAddress,
-      ensName: mockEns,
+      sessionAddress: address,
+      walletAddress: address,
+      ensName: ens,
     });
+    res.cookies.set({
+      name: COOKIE_NAME,
+      value: JSON.stringify({ address, ens, cedula, fingerprintCode }),
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 8, // 8h
+    });
+    return res;
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error("auth wallet POST error", e);

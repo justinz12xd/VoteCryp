@@ -7,16 +7,21 @@ const BC_URL =
 
 export async function GET() {
   try {
-    const idsRes = await fetch(`${BC_URL}/activeElections`, { cache: "no-store" });
+    const idsRes = await fetch(`${BC_URL}/activeElections`, {
+      cache: "no-store",
+    });
     if (!idsRes.ok) {
       const msg = await idsRes.text();
-      return NextResponse.json({ error: `activeElections failed: ${msg}` }, { status: 502 });
+      return NextResponse.json(
+        { error: `activeElections failed: ${msg}` },
+        { status: 502 }
+      );
     }
     const idsData = await idsRes.json();
     let ids: number[] = idsData?.ids || [];
 
     // Dev convenience: if no active elections, create a quick one
-  if (!ids || ids.length === 0) {
+    if (!ids || ids.length === 0) {
       const title = "Demo Election";
       const options = ["Alice", "Bob"];
       const qs = new URLSearchParams({
@@ -26,9 +31,13 @@ export async function GET() {
         enableFHE: String(false),
       }).toString();
       try {
-        await fetch(`${BC_URL}/createElectionQuick?${qs}`, { cache: "no-store" });
+        await fetch(`${BC_URL}/createElectionQuick?${qs}`, {
+          cache: "no-store",
+        });
       } catch {}
-      const retry = await fetch(`${BC_URL}/activeElections`, { cache: "no-store" });
+      const retry = await fetch(`${BC_URL}/activeElections`, {
+        cache: "no-store",
+      });
       if (retry.ok) {
         const d = await retry.json();
         ids = d?.ids || [];
@@ -37,7 +46,9 @@ export async function GET() {
 
     const elections = await Promise.all(
       ids.map(async (id: number) => {
-        const res = await fetch(`${BC_URL}/contractResults?electionId=${id}`, { cache: "no-store" });
+        const res = await fetch(`${BC_URL}/contractResults?electionId=${id}`, {
+          cache: "no-store",
+        });
         if (!res.ok) return null;
         const data = await res.json();
         const optionNames: string[] = data.optionNames || [];
@@ -72,8 +83,11 @@ export async function GET() {
     const list = elections.filter(Boolean);
     return NextResponse.json(list, { status: 200 });
   } catch (e) {
-  // eslint-disable-next-line no-console
-  console.error("/api/elections error", e);
-  return NextResponse.json({ error: "failed to fetch elections" }, { status: 500 });
+    // eslint-disable-next-line no-console
+    console.error("/api/elections error", e);
+    return NextResponse.json(
+      { error: "failed to fetch elections" },
+      { status: 500 }
+    );
   }
 }
