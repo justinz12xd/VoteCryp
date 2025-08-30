@@ -7,7 +7,8 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/joho/godotenv v1.5.1
 	github.com/ethereum/go-ethereum v1.14.4
-	modernc.org/sqlite v1.33.1
+	github.com/glebarez/sqlite v1.11.0
+	gorm.io/gorm v1.25.10
 )
 
 require (
