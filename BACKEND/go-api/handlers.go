@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -101,9 +102,16 @@ func SubmitVoteHandler(c *fiber.Ctx) error {
 	}
 
 	// 1) encrypt vote via encryption microservice
-	encryptURL := os.Getenv("ENCRYPTION_URL")
-	if encryptURL == "" {
-		encryptURL = "http://localhost:4001/encryptVote"
+	// Prefer base URL envs used in docker-compose, then legacy full URL, then localhost default
+	encryptBase := os.Getenv("ENCRYPTION_SERVICE_URL")
+	encryptURL := ""
+	if encryptBase != "" {
+		encryptURL = fmt.Sprintf("%s/encryptVote", strings.TrimRight(encryptBase, "/"))
+	} else {
+		encryptURL = os.Getenv("ENCRYPTION_URL")
+		if encryptURL == "" {
+			encryptURL = "http://localhost:4001/encryptVote"
+		}
 	}
 	payload := fmt.Sprintf(`{"candidateIndex": %d, "electionId":"%s"}`, req.CandidateIdx, req.ElectionID)
 	encResp, status, err := httpJSONPost(encryptURL, []byte(payload))
@@ -113,9 +121,15 @@ func SubmitVoteHandler(c *fiber.Ctx) error {
 	encryptedVote := encResp["encryptedVote"].(string)
 
 	// 2) submit to blockchain microservice
-	blockURL := os.Getenv("BLOCKCHAIN_URL")
-	if blockURL == "" {
-		blockURL = "http://localhost:4002/submitVote"
+	blockBase := os.Getenv("BLOCKCHAIN_SERVICE_URL")
+	blockURL := ""
+	if blockBase != "" {
+		blockURL = fmt.Sprintf("%s/submitVote", strings.TrimRight(blockBase, "/"))
+	} else {
+		blockURL = os.Getenv("BLOCKCHAIN_URL")
+		if blockURL == "" {
+			blockURL = "http://localhost:4002/submitVote"
+		}
 	}
 	payload2 := fmt.Sprintf(`{"electionId":"%s","encryptedVote":"%s","walletAddress":"%s"}`, req.ElectionID, encryptedVote, u.Wallet.Address)
 	bcResp, status, err := httpJSONPost(blockURL, []byte(payload2))
@@ -131,9 +145,15 @@ func SubmitVoteHandler(c *fiber.Ctx) error {
 
 func GetResultsHandler(c *fiber.Ctx) error {
 	// 1) fetch encrypted results from blockchain service
-	blockURL := os.Getenv("BLOCKCHAIN_RESULTS_URL")
-	if blockURL == "" {
-		blockURL = "http://localhost:4002/getEncryptedResults"
+	blockBase := os.Getenv("BLOCKCHAIN_SERVICE_URL")
+	blockURL := ""
+	if blockBase != "" {
+		blockURL = fmt.Sprintf("%s/getEncryptedResults", strings.TrimRight(blockBase, "/"))
+	} else {
+		blockURL = os.Getenv("BLOCKCHAIN_RESULTS_URL")
+		if blockURL == "" {
+			blockURL = "http://localhost:4002/getEncryptedResults"
+		}
 	}
 	bcData, status, err := httpJSONGet(blockURL)
 	if err != nil || status != 200 {
@@ -142,9 +162,15 @@ func GetResultsHandler(c *fiber.Ctx) error {
 	encList, _ := bcData["encryptedResults"].([]interface{})
 
 	// 2) tally/decrypt via results service
-	resultsURL := os.Getenv("RESULTS_URL")
-	if resultsURL == "" {
-		resultsURL = "http://localhost:4003/decryptResults"
+	resultsBase := os.Getenv("RESULTS_SERVICE_URL")
+	resultsURL := ""
+	if resultsBase != "" {
+		resultsURL = fmt.Sprintf("%s/decryptResults", strings.TrimRight(resultsBase, "/"))
+	} else {
+		resultsURL = os.Getenv("RESULTS_URL")
+		if resultsURL == "" {
+			resultsURL = "http://localhost:4003/decryptResults"
+		}
 	}
 	// convert to []string JSON
 	arr := "["
