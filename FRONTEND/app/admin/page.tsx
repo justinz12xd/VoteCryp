@@ -1,24 +1,53 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Users, Shield, Network, Lock, Zap, ArrowLeft, AlertTriangle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus,
+  Users,
+  Shield,
+  Network,
+  Lock,
+  Zap,
+  ArrowLeft,
+  AlertTriangle,
+} from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Mock admin addresses
-const ADMIN_ADDRESSES = ["0x742d35Cc6634C0532925a3b8D4C0C8b3C2e1e1e1", "admin.eth", "dao-admin.eth"]
+const ADMIN_ADDRESSES = [
+  "0x742d35Cc6634C0532925a3b8D4C0C8b3C2e1e1e1",
+  "admin.eth",
+  "dao-admin.eth",
+];
 
 export default function AdminPanel() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [walletAddress, setWalletAddress] = useState("")
-  const [ensName, setEnsName] = useState("")
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [ensName, setEnsName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createMsg, setCreateMsg] = useState<string | null>(null);
+  const [activeElections, setActiveElections] = useState<number[]>([]);
+  const [loadActiveError, setLoadActiveError] = useState<string | null>(null);
 
   const [newElection, setNewElection] = useState({
     title: "",
@@ -27,54 +56,126 @@ export default function AdminPanel() {
     startDate: "",
     endDate: "",
     candidates: ["", ""],
-  })
+  });
 
   useEffect(() => {
     const checkAdminAccess = async () => {
       // Simulate wallet connection check
-      const mockAddress = "0x742d35Cc6634C0532925a3b8D4C0C8b3C2e1e1e1"
-      const mockEns = "admin.eth"
+      const mockAddress = "0x742d35Cc6634C0532925a3b8D4C0C8b3C2e1e1e1";
+      const mockEns = "admin.eth";
 
-      setWalletAddress(mockAddress)
-      setEnsName(mockEns)
+      setWalletAddress(mockAddress);
+      setEnsName(mockEns);
 
-      const isAdmin = ADMIN_ADDRESSES.includes(mockAddress) || ADMIN_ADDRESSES.includes(mockEns)
-      setIsAuthenticated(isAdmin)
-      setIsLoading(false)
+      const isAdmin =
+        ADMIN_ADDRESSES.includes(mockAddress) ||
+        ADMIN_ADDRESSES.includes(mockEns);
+      setIsAuthenticated(isAdmin);
+      setIsLoading(false);
+    };
+
+    checkAdminAccess();
+    // load active elections once admin is validated
+    // slight delay to avoid race in first render
+    setTimeout(() => void fetchActiveElections(), 300);
+  }, []);
+
+  const fetchActiveElections = async () => {
+    try {
+      setLoadActiveError(null);
+      const res = await fetch("/api/admin/elections", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        setLoadActiveError(
+          data?.error || "No se pudo cargar elecciones activas"
+        );
+        setActiveElections([]);
+      } else {
+        setActiveElections(Array.isArray(data?.ids) ? data.ids : []);
+      }
+    } catch {
+      setLoadActiveError("Error de red");
+      setActiveElections([]);
     }
-
-    checkAdminAccess()
-  }, [])
+  };
 
   const addCandidate = () => {
     setNewElection((prev) => ({
       ...prev,
       candidates: [...prev.candidates, ""],
-    }))
-  }
+    }));
+  };
 
   const updateCandidate = (index: number, value: string) => {
     setNewElection((prev) => ({
       ...prev,
       candidates: prev.candidates.map((c, i) => (i === index ? value : c)),
-    }))
-  }
+    }));
+  };
 
   const createElection = async () => {
-    console.log("Deploying election to Lisk blockchain...")
-    console.log("Setting up Zama encryption...")
-    alert("Elección creada exitosamente en Lisk blockchain")
-
-    // Reset form
-    setNewElection({
-      title: "",
-      description: "",
-      type: "",
-      startDate: "",
-      endDate: "",
-      candidates: ["", ""],
-    })
-  }
+    try {
+      setCreating(true);
+      setCreateMsg(null);
+      // validar inputs
+      const title = newElection.title.trim();
+      const description = newElection.description.trim();
+      const options = newElection.candidates
+        .map((c) => c.trim())
+        .filter(Boolean);
+      if (!title || options.length < 2) {
+        setCreateMsg("Agrega título y al menos 2 candidatos");
+        return;
+      }
+      // duración: horas redondeadas entre fechas si existen, por defecto 24h
+      let durationHours = 24;
+      if (newElection.startDate && newElection.endDate) {
+        const start = new Date(newElection.startDate).getTime();
+        const end = new Date(newElection.endDate).getTime();
+        if (end > start) {
+          durationHours = Math.max(
+            1,
+            Math.round((end - start) / (1000 * 60 * 60))
+          );
+        }
+      }
+      const body = {
+        title,
+        description,
+        options,
+        durationHours,
+        enableFHE: true,
+      };
+      const res = await fetch("/api/admin/elections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCreateMsg(data?.error || "No se pudo crear la elección");
+        return;
+      }
+      setCreateMsg(
+        `Elección creada. Tx: ${data?.txHash || "N/A"}${
+          data?.electionId ? `, ID: ${data.electionId}` : ""
+        }`
+      );
+      // Reset form
+      setNewElection({
+        title: "",
+        description: "",
+        type: "",
+        startDate: "",
+        endDate: "",
+        candidates: ["", ""],
+      });
+      // refrescar lista
+      void fetchActiveElections();
+    } finally {
+      setCreating(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -83,11 +184,13 @@ export default function AdminPanel() {
           <CardContent className="text-center space-y-4 pt-6">
             <Zap className="h-12 w-12 text-primary mx-auto animate-spin" />
             <h2 className="text-xl font-semibold">Verificando acceso...</h2>
-            <p className="text-muted-foreground">Conectando con Lisk blockchain</p>
+            <p className="text-muted-foreground">
+              Conectando con Lisk blockchain
+            </p>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
@@ -97,15 +200,20 @@ export default function AdminPanel() {
           <CardContent className="text-center space-y-4 pt-6">
             <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
             <h2 className="text-xl font-semibold">Acceso Denegado</h2>
-            <p className="text-muted-foreground">No tienes permisos de administrador para acceder a este panel</p>
-            <Button onClick={() => (window.location.href = "/")} variant="outline">
+            <p className="text-muted-foreground">
+              No tienes permisos de administrador para acceder a este panel
+            </p>
+            <Button
+              onClick={() => (window.location.href = "/")}
+              variant="outline"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver al Portal de Votación
             </Button>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -114,13 +222,18 @@ export default function AdminPanel() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => (window.location.href = "/")}>
+              <Button
+                variant="ghost"
+                onClick={() => (window.location.href = "/")}
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Volver
               </Button>
               <div className="flex items-center space-x-2">
                 <Shield className="h-8 w-8 text-primary" />
-                <h1 className="text-2xl font-bold text-foreground">Panel de Administración</h1>
+                <h1 className="text-2xl font-bold text-foreground">
+                  Panel de Administración
+                </h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -154,13 +267,17 @@ export default function AdminPanel() {
                 <Plus className="h-5 w-5" />
                 <span>Crear Nueva Elección</span>
               </CardTitle>
-              <CardDescription>Despliega una nueva votación en Lisk blockchain con encriptación Zama</CardDescription>
+              <CardDescription>
+                Despliega una nueva votación en Lisk blockchain con encriptación
+                Zama
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <Alert>
                 <Network className="h-4 w-4" />
                 <AlertDescription>
-                  La elección se desplegará como smart contract en Lisk blockchain con encriptación Zama
+                  La elección se desplegará como smart contract en Lisk
+                  blockchain con encriptación Zama
                 </AlertDescription>
               </Alert>
 
@@ -171,14 +288,21 @@ export default function AdminPanel() {
                     id="title"
                     placeholder="Ej: Elección de Presidente DAO 2024"
                     value={newElection.title}
-                    onChange={(e) => setNewElection((prev) => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) =>
+                      setNewElection((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">Tipo de Votación</Label>
                   <Select
                     value={newElection.type}
-                    onValueChange={(value) => setNewElection((prev) => ({ ...prev, type: value }))}
+                    onValueChange={(value) =>
+                      setNewElection((prev) => ({ ...prev, type: value }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar tipo" />
@@ -186,7 +310,9 @@ export default function AdminPanel() {
                     <SelectContent>
                       <SelectItem value="single">Opción única</SelectItem>
                       <SelectItem value="multiple">Opción múltiple</SelectItem>
-                      <SelectItem value="ranked">Votación clasificada</SelectItem>
+                      <SelectItem value="ranked">
+                        Votación clasificada
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -199,7 +325,12 @@ export default function AdminPanel() {
                   placeholder="Describe el propósito y contexto de esta elección..."
                   rows={3}
                   value={newElection.description}
-                  onChange={(e) => setNewElection((prev) => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) =>
+                    setNewElection((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
                 />
               </div>
 
@@ -210,7 +341,12 @@ export default function AdminPanel() {
                     id="start"
                     type="datetime-local"
                     value={newElection.startDate}
-                    onChange={(e) => setNewElection((prev) => ({ ...prev, startDate: e.target.value }))}
+                    onChange={(e) =>
+                      setNewElection((prev) => ({
+                        ...prev,
+                        startDate: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -219,7 +355,12 @@ export default function AdminPanel() {
                     id="end"
                     type="datetime-local"
                     value={newElection.endDate}
-                    onChange={(e) => setNewElection((prev) => ({ ...prev, endDate: e.target.value }))}
+                    onChange={(e) =>
+                      setNewElection((prev) => ({
+                        ...prev,
+                        endDate: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -244,7 +385,9 @@ export default function AdminPanel() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Configuración Blockchain</Label>
+                  <Label className="text-sm font-medium">
+                    Configuración Blockchain
+                  </Label>
                   <div className="text-xs text-muted-foreground space-y-1">
                     <div>• Smart Contract: Lisk L2</div>
                     <div>• Encriptación: Zama FHE</div>
@@ -252,7 +395,9 @@ export default function AdminPanel() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Estimación de Gas</Label>
+                  <Label className="text-sm font-medium">
+                    Estimación de Gas
+                  </Label>
                   <div className="text-xs text-muted-foreground space-y-1">
                     <div>• Deploy: ~0.05 LSK</div>
                     <div>• Por voto: ~0.001 LSK</div>
@@ -261,10 +406,53 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              <Button onClick={createElection} className="w-full" size="lg">
+              {createMsg && (
+                <Alert>
+                  <AlertDescription>{createMsg}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button
+                onClick={createElection}
+                className="w-full"
+                size="lg"
+                disabled={creating}
+              >
                 <Network className="h-4 w-4 mr-2" />
-                Desplegar Elección en Lisk Blockchain
+                {creating
+                  ? "Desplegando..."
+                  : "Desplegar Elección en Lisk Blockchain"}
               </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Users className="h-5 w-5" />
+                <span>Elecciones Activas en Contrato</span>
+              </CardTitle>
+              <CardDescription>
+                Listado en vivo desde el smart contract
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Button variant="outline" onClick={fetchActiveElections}>
+                  Refrescar
+                </Button>
+                {loadActiveError && (
+                  <span className="text-sm text-red-600">
+                    {loadActiveError}
+                  </span>
+                )}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                IDs activos:{" "}
+                {activeElections.length
+                  ? activeElections.join(", ")
+                  : "Ninguno"}
+              </div>
             </CardContent>
           </Card>
 
@@ -274,24 +462,38 @@ export default function AdminPanel() {
                 <Users className="h-5 w-5" />
                 <span>Gestión de Votantes</span>
               </CardTitle>
-              <CardDescription>Administra la elegibilidad y verificación de identidades ENS</CardDescription>
+              <CardDescription>
+                Administra la elegibilidad y verificación de identidades ENS
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 bg-muted rounded-lg">
                   <div className="text-2xl font-bold text-primary">1,247</div>
-                  <div className="text-sm text-muted-foreground">Identidades ENS</div>
-                  <div className="text-xs text-muted-foreground mt-1">Verificadas</div>
+                  <div className="text-sm text-muted-foreground">
+                    Identidades ENS
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Verificadas
+                  </div>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
                   <div className="text-2xl font-bold text-accent">892</div>
-                  <div className="text-sm text-muted-foreground">Votos Encriptados</div>
-                  <div className="text-xs text-muted-foreground mt-1">Procesados</div>
+                  <div className="text-sm text-muted-foreground">
+                    Votos Encriptados
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Procesados
+                  </div>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
                   <div className="text-2xl font-bold text-foreground">71%</div>
-                  <div className="text-sm text-muted-foreground">Participación</div>
-                  <div className="text-xs text-muted-foreground mt-1">Tiempo real</div>
+                  <div className="text-sm text-muted-foreground">
+                    Participación
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Tiempo real
+                  </div>
                 </div>
               </div>
 
@@ -305,8 +507,12 @@ export default function AdminPanel() {
                     <SelectContent>
                       <SelectItem value="ens">Poseedores de ENS</SelectItem>
                       <SelectItem value="dao">Miembros de DAO</SelectItem>
-                      <SelectItem value="token">Holders de Token LSK</SelectItem>
-                      <SelectItem value="whitelist">Lista Blanca Verificada</SelectItem>
+                      <SelectItem value="token">
+                        Holders de Token LSK
+                      </SelectItem>
+                      <SelectItem value="whitelist">
+                        Lista Blanca Verificada
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -327,5 +533,5 @@ export default function AdminPanel() {
         </div>
       </div>
     </div>
-  )
+  );
 }

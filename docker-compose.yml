@@ -1,0 +1,99 @@
+version: "3.9"
+
+services:
+  encryption-service:
+    build:
+      context: ./MICROSERVICES/encryption-service
+    container_name: encryption-service
+    environment:
+      - PORT=4001
+    ports:
+      - "4001:4001"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4001/health', r=>{if(r.statusCode===200)process.exit(0);process.exit(1)})"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  blockchain-service:
+    build:
+      context: ./MICROSERVICES/blockchain-service
+    container_name: blockchain-service
+    environment:
+      - PORT=4002
+      - RPC_URL=${RPC_URL:-http://host.docker.internal:8545}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-0x0000000000000000000000000000000000000000}
+    ports:
+      - "4002:4002"
+    depends_on:
+      encryption-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4002/health', r=>{if(r.statusCode===200)process.exit(0);process.exit(1)})"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  results-service:
+    build:
+      context: ./MICROSERVICES/results-service
+    container_name: results-service
+    environment:
+      - PORT=4003
+    ports:
+      - "4003:4003"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4003/health', r=>{if(r.statusCode===200)process.exit(0);process.exit(1)})"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  go-api:
+    build:
+      context: ./BACKEND/go-api
+    container_name: go-api
+    environment:
+      - PORT=8080
+      - JWT_SECRET=${JWT_SECRET:-supersecretjwt}
+      - AES_KEY=${AES_KEY:-0123456789abcdef0123456789abcdef}
+      - ENCRYPTION_SERVICE_URL=http://encryption-service:4001
+      - BLOCKCHAIN_SERVICE_URL=http://blockchain-service:4002
+      - RESULTS_SERVICE_URL=http://results-service:4003
+    ports:
+      - "8080:8080"
+    depends_on:
+      encryption-service:
+        condition: service_healthy
+      blockchain-service:
+        condition: service_healthy
+      results-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./FRONTEND
+    container_name: frontend
+    environment:
+      - NEXT_PUBLIC_GO_API_URL=http://go-api:8080
+  - BLOCKCHAIN_SVC_URL=http://blockchain-service:4002
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    depends_on:
+      go-api:
+        condition: service_started
+  command: ["sh", "-lc", "npm ci || npm install; npm run dev -- -H 0.0.0.0"]
+
+networks:
+  default:
+    name: votecryp-net
