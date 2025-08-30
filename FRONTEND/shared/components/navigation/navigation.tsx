@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import WalletInfo from "@/features/shared/components/WalletInfo";
 import useWallet from "@/features/shared/useWallet";
 
-export default function Navigation(): React.ReactNode {
+export function Navigation(): React.ReactNode {
   const {
     ensName = "",
     walletAddress = "",
@@ -26,8 +26,8 @@ export default function Navigation(): React.ReactNode {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Link href="/dashboard">
-              <Button variant="outline">Ver Dashboard</Button>
+            <Link href="/results">
+              <Button variant="outline">See results</Button>
             </Link>
             {/* show wallet info once hook finishes loading to avoid flicker */}
             <WalletInfo

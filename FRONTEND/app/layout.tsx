@@ -3,7 +3,8 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
-import Navigation from "@/shared/components/navigation";
+import { Navigation } from "@/shared/components/navigation";
+import {Footer} from "@/shared/components/footer";
 
 export const metadata: Metadata = {
   title: "VoteCrypt",
@@ -22,6 +23,7 @@ export default function RootLayout({
         <Navigation />
         {children}
         <Analytics />
+        <Footer />
       </body>
     </html>
   );
