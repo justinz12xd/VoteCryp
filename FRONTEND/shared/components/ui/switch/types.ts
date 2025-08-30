@@ -1,4 +1,4 @@
 import * as React from "react";
+import { Switch } from "./index";
 
-// Fallback: switch is typically an input element
-export type SwitchProps = React.ComponentProps<"input">;
+export type SwitchProps = React.ComponentProps<typeof Switch>;

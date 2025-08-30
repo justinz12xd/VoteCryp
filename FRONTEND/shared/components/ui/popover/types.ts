@@ -1,4 +1,7 @@
 import * as React from "react";
+import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "./popover";
 
-// Conservative fallback: most popovers behave like a div wrapper
-export type PopoverProps = React.ComponentProps<"div">;
+export type PopoverProps = React.ComponentProps<typeof Popover>;
+export type PopoverTriggerProps = React.ComponentProps<typeof PopoverTrigger>;
+export type PopoverContentProps = React.ComponentProps<typeof PopoverContent>;
+export type PopoverAnchorProps = React.ComponentProps<typeof PopoverAnchor>;
