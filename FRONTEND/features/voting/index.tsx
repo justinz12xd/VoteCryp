@@ -1,11 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { CheckCircle2, Shield, Vote, Wallet, Lock, Zap, Network } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
@@ -29,8 +27,6 @@ const mockElections = [
   },
 ]
 
-// Mock admin addresses (in real app, this would be from smart contract)
-const ADMIN_ADDRESSES = ["0x742d35Cc6634C0532925a3b8D4C0C8b3C2e1e1e1", "admin.eth", "dao-admin.eth"]
 
 export default function VotingFeature() {
   const [walletConnected, setWalletConnected] = useState(false)
@@ -41,17 +37,7 @@ export default function VotingFeature() {
   const [hasVoted, setHasVoted] = useState<{ [key: number]: boolean }>({})
   const [zamaEncrypting, setZamaEncrypting] = useState(false)
 
-  const connectWallet = async () => {
-    setWalletConnected(true)
-    const mockAddress = "0x123456789abcdef123456789abcdef1234567890"
-    const mockEns = "voter.eth"
-
-    setWalletAddress(mockAddress)
-    setEnsName(mockEns)
-
-    // Check if user is admin
-    setIsAdmin(ADMIN_ADDRESSES.includes(mockAddress) || ADMIN_ADDRESSES.includes(mockEns))
-  }
+  // Wallet/session state is loaded from localStorage in useEffect
 
   const encryptVoteWithZama = async (electionId: number, candidateIndex: number) => {
     setZamaEncrypting(true)
@@ -95,60 +81,32 @@ export default function VotingFeature() {
     )
   }
 
+  // Auto-redirect to login if there's no active session
+  useEffect(() => {
+    try {
+      const s = window.localStorage.getItem("vc_session")
+      if (!s) {
+        window.location.assign("/login")
+      } else {
+        const parsed = JSON.parse(s)
+        setWalletConnected(true)
+        setWalletAddress(parsed.address || "")
+        setEnsName(parsed.ens || "")
+        setIsAdmin(!!parsed.isAdmin)
+      }
+    } catch {
+      window.location.assign("/login")
+    }
+  }, [])
+
   if (!walletConnected) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
-          <CardHeader className="text-center space-y-4">
-            <div className="flex justify-center">
-              <Shield className="h-12 w-12 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-2xl">VoteCrypt</CardTitle>
-              <CardDescription className="text-base mt-2">Sistema de Votación Descentralizado</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="p-3 bg-muted rounded-lg">
-                <Network className="h-6 w-6 text-primary mx-auto mb-1" />
-                <div className="text-xs font-medium">Lisk Blockchain</div>
-              </div>
-              <div className="p-3 bg-muted rounded-lg">
-                <Lock className="h-6 w-6 text-primary mx-auto mb-1" />
-                <div className="text-xs font-medium">Zama Encryption</div>
-              </div>
-              <div className="p-3 bg-muted rounded-lg">
-                <Zap className="h-6 w-6 text-primary mx-auto mb-1" />
-                <div className="text-xs font-medium">ENS Identity</div>
-              </div>
-              <div className="p-3 bg-muted rounded-lg">
-                <Shield className="h-6 w-6 text-primary mx-auto mb-1" />
-                <div className="text-xs font-medium">Vercel Deploy</div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="ens">Nombre ENS (opcional)</Label>
-                <Input
-                  id="ens"
-                  placeholder="tu-nombre.eth"
-                  value={ensName}
-                  onChange={(e) => setEnsName(e.target.value)}
-                />
-              </div>
-              <Button onClick={connectWallet} className="w-full" size="lg">
-                <Wallet className="h-4 w-4 mr-2" />
-                Conectar Wallet & Verificar ENS
-              </Button>
-            </div>
-
-            <div className="text-xs text-muted-foreground text-center space-y-1">
-              <p>Votación anónima con encriptación Zama</p>
-              <p>Identidad verificada con ENS</p>
-              <p>Transparencia total en Lisk blockchain</p>
-            </div>
+          <CardContent className="text-center space-y-4 pt-6">
+            <Shield className="h-12 w-12 text-primary mx-auto animate-pulse" />
+            <h2 className="text-xl font-semibold">Redirigiendo al login...</h2>
+            <p className="text-muted-foreground">Preparando tu sesión</p>
           </CardContent>
         </Card>
       </div>
@@ -201,7 +159,7 @@ export default function VotingFeature() {
               </AlertDescription>
             </Alert>
 
-            <div className="grid gap-4">
+            <div className="grid gap-4 max-w-max mx-auto">
               <h3 className="text-xl font-semibold">Elecciones Activas</h3>
               {mockElections
                 .filter((e) => e.status === "active")
@@ -218,7 +176,6 @@ export default function VotingFeature() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>Lisk TX: {election.liskTxHash.slice(0, 10)}...</span>
                         <span>Votos: {election.totalVotes}</span>
                       </div>
 
