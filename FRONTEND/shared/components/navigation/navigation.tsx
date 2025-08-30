@@ -10,17 +10,19 @@ import WalletInfo from "@/features/shared/components/WalletInfo";
 import useWallet from "@/features/shared/useWallet";
 
 export function Navigation(): React.ReactNode {
-  // Hide global site header on dashboard/results pages to avoid double headers
+  // Determine current route; hooks must be called unconditionally
   const pathname = usePathname();
-  if (pathname?.startsWith("/results")) {
-    return null;
-  }
 
   const {
     ensName = "",
     walletAddress = "",
     loading: walletLoading,
   } = useWallet();
+
+  // Hide global site header on dashboard/results pages to avoid double headers
+  if (pathname?.startsWith("/results")) {
+    return null;
+  }
 
   return (
     <header className="border-b bg-card" role="banner">
