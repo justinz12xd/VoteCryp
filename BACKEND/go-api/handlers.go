@@ -1,18 +1,20 @@
 package main
 
 import (
-	"crypto/ed25519"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gofiber/fiber/v2"
 )
 
-const errInvalidBody = "invalid body"
+const (
+	errInvalidBody = "invalid body"
+	errUnknownUser = "unknown user"
+)
 
 type RegisterRequest struct {
 	Email    string `json:"email"`
@@ -29,8 +31,41 @@ type SubmitVoteRequest struct {
 	CandidateIdx int    `json:"candidateIndex"`
 }
 
+type RegisterENSRequest struct {
+	EnsName string `json:"ensName"`
+}
+
 // simple in-memory double-vote prevention: userID -> electionId -> bool
 var voteIndex = map[string]map[string]bool{}
+
+// small helpers to reduce complexity
+func resolveServiceURL(baseEnv, legacyEnv, defaultURL, path string) string {
+	base := os.Getenv(baseEnv)
+	if base != "" {
+		return fmt.Sprintf("%s/%s", strings.TrimRight(base, "/"), strings.TrimLeft(path, "/"))
+	}
+	u := os.Getenv(legacyEnv)
+	if u != "" {
+		return u
+	}
+	return defaultURL
+}
+
+func jsonStringsArrayFromInterfaces(list []interface{}) string {
+	if len(list) == 0 {
+		return "[]"
+	}
+	b := strings.Builder{}
+	b.WriteString("[")
+	for i, v := range list {
+		if i > 0 {
+			b.WriteString(",")
+		}
+		b.WriteString(fmt.Sprintf("\"%v\"", v))
+	}
+	b.WriteString("]")
+	return b.String()
+}
 
 func RegisterHandler(c *fiber.Ctx) error {
 	var req RegisterRequest
@@ -45,19 +80,23 @@ func RegisterHandler(c *fiber.Ctx) error {
 		return c.Status(409).JSON(fiber.Map{"error": "user exists"})
 	}
 
-	// generate wallet (ed25519 as placeholder)
-	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	// generate Ethereum wallet (secp256k1)
+	ecdsaPriv, err := crypto.GenerateKey()
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "wallet gen failed"})
 	}
-	addr := hex.EncodeToString(pub[:20])
-	encPriv, err := encryptAES(priv)
+	address := crypto.PubkeyToAddress(ecdsaPriv.PublicKey).Hex()
+	privBytes := crypto.FromECDSA(ecdsaPriv)
+	encPriv, err := encryptAES(privBytes)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "encrypt failed"})
 	}
 
-	u := User{ID: req.Email, Email: req.Email, Password: req.Password, Wallet: Wallet{Address: addr, PrivEncB64: encPriv}}
+	u := User{ID: req.Email, Email: req.Email, Password: req.Password, Wallet: Wallet{Address: address, PrivEncB64: encPriv}}
 	users[req.Email] = u
+	if err := SaveUser(u); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "persist failed"})
+	}
 
 	jwt, err := makeJWT(u.ID)
 	if err != nil {
@@ -90,7 +129,7 @@ func SubmitVoteHandler(c *fiber.Ctx) error {
 	uid := c.Locals("userID").(string)
 	u, ok := users[uid]
 	if !ok {
-		return c.Status(401).JSON(fiber.Map{"error": "unknown user"})
+		return c.Status(401).JSON(fiber.Map{"error": errUnknownUser})
 	}
 
 	// double-vote check
@@ -100,19 +139,12 @@ func SubmitVoteHandler(c *fiber.Ctx) error {
 	if voteIndex[uid][req.ElectionID] {
 		return c.Status(409).JSON(fiber.Map{"error": "already voted"})
 	}
+	if has, err := HasVoted(uid, req.ElectionID); err == nil && has {
+		return c.Status(409).JSON(fiber.Map{"error": "already voted"})
+	}
 
 	// 1) encrypt vote via encryption microservice
-	// Prefer base URL envs used in docker-compose, then legacy full URL, then localhost default
-	encryptBase := os.Getenv("ENCRYPTION_SERVICE_URL")
-	encryptURL := ""
-	if encryptBase != "" {
-		encryptURL = fmt.Sprintf("%s/encryptVote", strings.TrimRight(encryptBase, "/"))
-	} else {
-		encryptURL = os.Getenv("ENCRYPTION_URL")
-		if encryptURL == "" {
-			encryptURL = "http://localhost:4001/encryptVote"
-		}
-	}
+	encryptURL := resolveServiceURL("ENCRYPTION_SERVICE_URL", "ENCRYPTION_URL", "http://localhost:4001/encryptVote", "encryptVote")
 	payload := fmt.Sprintf(`{"candidateIndex": %d, "electionId":"%s"}`, req.CandidateIdx, req.ElectionID)
 	encResp, status, err := httpJSONPost(encryptURL, []byte(payload))
 	if err != nil || status != 200 {
@@ -121,16 +153,7 @@ func SubmitVoteHandler(c *fiber.Ctx) error {
 	encryptedVote := encResp["encryptedVote"].(string)
 
 	// 2) submit to blockchain microservice
-	blockBase := os.Getenv("BLOCKCHAIN_SERVICE_URL")
-	blockURL := ""
-	if blockBase != "" {
-		blockURL = fmt.Sprintf("%s/submitVote", strings.TrimRight(blockBase, "/"))
-	} else {
-		blockURL = os.Getenv("BLOCKCHAIN_URL")
-		if blockURL == "" {
-			blockURL = "http://localhost:4002/submitVote"
-		}
-	}
+	blockURL := resolveServiceURL("BLOCKCHAIN_SERVICE_URL", "BLOCKCHAIN_URL", "http://localhost:4002/submitVote", "submitVote")
 	payload2 := fmt.Sprintf(`{"electionId":"%s","encryptedVote":"%s","walletAddress":"%s"}`, req.ElectionID, encryptedVote, u.Wallet.Address)
 	bcResp, status, err := httpJSONPost(blockURL, []byte(payload2))
 	if err != nil || status != 200 {
@@ -139,22 +162,14 @@ func SubmitVoteHandler(c *fiber.Ctx) error {
 
 	// mark as voted
 	voteIndex[uid][req.ElectionID] = true
+	_ = MarkVoted(uid, req.ElectionID)
 
 	return c.JSON(fiber.Map{"ok": true, "tx": bcResp})
 }
 
 func GetResultsHandler(c *fiber.Ctx) error {
 	// 1) fetch encrypted results from blockchain service
-	blockBase := os.Getenv("BLOCKCHAIN_SERVICE_URL")
-	blockURL := ""
-	if blockBase != "" {
-		blockURL = fmt.Sprintf("%s/getEncryptedResults", strings.TrimRight(blockBase, "/"))
-	} else {
-		blockURL = os.Getenv("BLOCKCHAIN_RESULTS_URL")
-		if blockURL == "" {
-			blockURL = "http://localhost:4002/getEncryptedResults"
-		}
-	}
+	blockURL := resolveServiceURL("BLOCKCHAIN_SERVICE_URL", "BLOCKCHAIN_RESULTS_URL", "http://localhost:4002/getEncryptedResults", "getEncryptedResults")
 	bcData, status, err := httpJSONGet(blockURL)
 	if err != nil || status != 200 {
 		return c.Status(502).JSON(fiber.Map{"error": "blockchain fetch failed"})
@@ -162,25 +177,9 @@ func GetResultsHandler(c *fiber.Ctx) error {
 	encList, _ := bcData["encryptedResults"].([]interface{})
 
 	// 2) tally/decrypt via results service
-	resultsBase := os.Getenv("RESULTS_SERVICE_URL")
-	resultsURL := ""
-	if resultsBase != "" {
-		resultsURL = fmt.Sprintf("%s/decryptResults", strings.TrimRight(resultsBase, "/"))
-	} else {
-		resultsURL = os.Getenv("RESULTS_URL")
-		if resultsURL == "" {
-			resultsURL = "http://localhost:4003/decryptResults"
-		}
-	}
+	resultsURL := resolveServiceURL("RESULTS_SERVICE_URL", "RESULTS_URL", "http://localhost:4003/decryptResults", "decryptResults")
 	// convert to []string JSON
-	arr := "["
-	for i, v := range encList {
-		if i > 0 {
-			arr += ","
-		}
-		arr += fmt.Sprintf("\"%v\"", v)
-	}
-	arr += "]"
+	arr := jsonStringsArrayFromInterfaces(encList)
 	payload := []byte(fmt.Sprintf(`{"encryptedResults": %s}`, arr))
 	resData, status, err := httpJSONPost(resultsURL, payload)
 	if err != nil || status != 200 {
@@ -188,4 +187,65 @@ func GetResultsHandler(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(resData)
+}
+
+// Proxy to blockchain-service /registerENS
+func RegisterENSHandler(c *fiber.Ctx) error {
+	var req RegisterENSRequest
+	if err := c.BodyParser(&req); err != nil || strings.TrimSpace(req.EnsName) == "" {
+		return c.Status(400).JSON(fiber.Map{"error": errInvalidBody})
+	}
+
+	// Use user's wallet to register ENS on-chain
+	uid := c.Locals("userID").(string)
+	u, ok := users[uid]
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": errUnknownUser})
+	}
+	// decrypt user's private key
+	privBytes, err := decryptAES(u.Wallet.PrivEncB64)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "wallet decrypt failed"})
+	}
+	// hex string with 0x prefix
+	privHex := "0x" + fmt.Sprintf("%x", privBytes)
+
+	blockBase := os.Getenv("BLOCKCHAIN_SERVICE_URL")
+	url := ""
+	if blockBase != "" {
+		url = fmt.Sprintf("%s/registerENSWithPK", strings.TrimRight(blockBase, "/"))
+	} else {
+		url = os.Getenv("BLOCKCHAIN_URL")
+		if url == "" {
+			url = "http://localhost:4002/registerENSWithPK"
+		}
+	}
+	payload := []byte(fmt.Sprintf(`{"ensName":"%s","privateKey":"%s"}`, req.EnsName, privHex))
+	data, status, err := httpJSONPost(url, payload)
+	if err != nil || status != 200 {
+		return c.Status(502).JSON(fiber.Map{"error": "register ens failed"})
+	}
+	return c.JSON(data)
+}
+
+// GET /api/me -> returns authenticated user info plus ENS status from blockchain-service
+func MeHandler(c *fiber.Ctx) error {
+	uid := c.Locals("userID").(string)
+	u, ok := users[uid]
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": errUnknownUser})
+	}
+
+	// fetch ENS info from blockchain-service via dedicated endpoint
+	base := resolveServiceURL("BLOCKCHAIN_SERVICE_URL", "BLOCKCHAIN_GET_ENS_URL", "http://localhost:4002/getENSVoter", "getENSVoter")
+	full := fmt.Sprintf("%s?address=%s", strings.TrimRight(base, "/"), url.QueryEscape(u.Wallet.Address))
+	ensResp, status, err := httpJSONGet(full)
+	if err != nil || status != 200 {
+		// still return user data; ens unknown
+		return c.JSON(fiber.Map{"user": fiber.Map{"id": u.ID, "email": u.Email, "wallet": u.Wallet}})
+	}
+	return c.JSON(fiber.Map{
+		"user": fiber.Map{"id": u.ID, "email": u.Email, "wallet": u.Wallet},
+		"ens":  ensResp,
+	})
 }
