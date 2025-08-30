@@ -1,5 +1,5 @@
-import Login from "@/features/auth/login"
+import Login from "@/features/auth/login";
 
 export default function LoginPage() {
-  return <Login redirectTo="/voting" />
+  return <Login redirectTo="/voting" />;
 }
