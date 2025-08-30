@@ -24,8 +24,9 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     // Validación robusta de cédula ecuatoriana (10 dígitos, módulo 10 para naturales)
     const cedulaResult = validateEcuadorCedula(c);
     if (!cedulaResult.valid) return cedulaResult.reason || "Invalid id number";
-  const fingerResult = validateFingerprintCode(f);
-  if (!fingerResult.valid) return fingerResult.reason || "Fingerprint code inválido";
+    const fingerResult = validateFingerprintCode(f);
+    if (!fingerResult.valid)
+      return fingerResult.reason || "Fingerprint code inválido";
     return null;
   };
 
@@ -39,9 +40,8 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
     try {
       setConnecting(true);
       setError(null);
-      const API_URL = `${process.env.REACT_APP_API_URL}/api/auth/login`;
-      // Call backend auth endpoint with cedula + fingerprintCode
-      const res = await fetch(API_URL, {
+      // Call Next API to create a session cookie with cedula + fingerprintCode
+      const res = await fetch("/api/auth/wallet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -56,11 +56,11 @@ export function useLogin({ redirectTo = "/", onLogin }: LoginProps) {
         return;
       }
 
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => ({} as any));
 
       // Accept either new sessionAddress or legacy walletAddress from server
-      const addr = data.sessionAddress || "";
-      const ens = data.ensName || ensName || "";
+      const addr = data?.sessionAddress || "";
+      const ens = data?.ensName || ensName || "";
 
       setSessionAddress(addr);
       setConnected(Boolean(data.connected));
