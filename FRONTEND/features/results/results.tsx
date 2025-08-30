@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Card,
@@ -6,29 +6,33 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import {
   CheckCircle2,
   Shield,
   BarChart3,
-  Network,
   ArrowLeft,
   TrendingUp,
   Users,
   Vote,
-} from "lucide-react"
-import Link from "next/link"
-import { useElections } from "../shared"
-import type { Election } from "../shared/types"
+} from "lucide-react";
+import Link from "next/link";
+import { useElections } from "../shared";
+import type { Election } from "../shared/types";
 
 export default function DashboardFeature() {
-  const { elections } = useElections()
-  const totalVotes = elections.reduce((sum, election) => sum + election.totalVotes, 0)
-  const activeElections = elections.filter((e) => e.status === "active").length
-  const completedElections = elections.filter((e) => e.status === "completed").length
+  const { elections } = useElections();
+  const totalVotes = elections.reduce(
+    (sum, election) => sum + election.totalVotes,
+    0
+  );
+  const activeElections = elections.filter((e) => e.status === "active").length;
+  const completedElections = elections.filter(
+    (e) => e.status === "completed"
+  ).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
@@ -87,7 +91,9 @@ export default function DashboardFeature() {
               <CardContent className="flex items-center gap-3">
                 <stat.icon className={`h-8 w-8 ${stat.color}`} />
                 <div>
-                  <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                  <p className={`text-2xl font-bold ${stat.color}`}>
+                    {stat.value}
+                  </p>
                   <p className="text-sm text-muted-foreground">{stat.label}</p>
                 </div>
               </CardContent>
@@ -113,11 +119,15 @@ export default function DashboardFeature() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-xl">{election.title}</CardTitle>
+                      <CardTitle className="text-xl">
+                        {election.title}
+                      </CardTitle>
                       <CardDescription>{election.description}</CardDescription>
                     </div>
                     <Badge
-                      variant={election.status === "active" ? "secondary" : "outline"}
+                      variant={
+                        election.status === "active" ? "secondary" : "outline"
+                      }
                       className="capitalize"
                     >
                       {election.status === "active" ? "Ongoing" : "Completed"}
@@ -129,12 +139,18 @@ export default function DashboardFeature() {
                   {/* Overview */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <p className="text-2xl font-bold text-primary">{election.totalVotes}</p>
-                      <p className="text-sm text-muted-foreground">Total Votes</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {election.totalVotes}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Total Votes
+                      </p>
                     </div>
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
                       <p className="text-2xl font-bold text-green-600">100%</p>
-                      <p className="text-sm text-muted-foreground">Zama Encryption</p>
+                      <p className="text-sm text-muted-foreground">
+                        Zama Encryption
+                      </p>
                     </div>
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
                       <p className="text-2xl font-bold text-blue-600">
@@ -166,7 +182,10 @@ export default function DashboardFeature() {
                             </span>
                           </div>
                         </div>
-                        <Progress value={candidate.percentage} className="h-3" />
+                        <Progress
+                          value={candidate.percentage}
+                          className="h-3"
+                        />
                         <div className="text-xs text-muted-foreground">
                           Zama Hash: {candidate.encryptedVotes}
                         </div>
@@ -177,7 +196,10 @@ export default function DashboardFeature() {
                   {/* Footer */}
                   <div className="flex justify-between items-center pt-4 border-t text-xs text-muted-foreground">
                     <span>Lisk TX: {election.liskTxHash}</span>
-                    <Badge variant="outline" className="flex items-center gap-1 text-green-600">
+                    <Badge
+                      variant="outline"
+                      className="flex items-center gap-1 text-green-600"
+                    >
                       <CheckCircle2 className="h-3 w-3" />
                       Verified on Blockchain
                     </Badge>
@@ -189,5 +211,5 @@ export default function DashboardFeature() {
         </div>
       </div>
     </div>
-  )
+  );
 }
