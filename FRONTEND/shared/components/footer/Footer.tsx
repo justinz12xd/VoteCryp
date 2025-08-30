@@ -3,7 +3,7 @@ import { Shield } from "lucide-react";
 export function Footer() {
   return (
     <footer
-      className="mt-10 mb-6 border-t pt-6"
+      className="mt-10 border-t py-6 bg-card"
       role="contentinfo"
       aria-label="Footer"
     >
