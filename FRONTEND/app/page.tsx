@@ -104,7 +104,7 @@ export default function BlockchainVotingSystem() {
               <Shield className="h-12 w-12 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-2xl">VoteChain</CardTitle>
+              <CardTitle className="text-2xl">VoteCrypt</CardTitle>
               <CardDescription className="text-base mt-2">Sistema de Votación Descentralizado</CardDescription>
             </div>
           </CardHeader>
@@ -145,9 +145,9 @@ export default function BlockchainVotingSystem() {
             </div>
 
             <div className="text-xs text-muted-foreground text-center space-y-1">
-              <p>• Votación anónima con encriptación Zama</p>
-              <p>• Identidad verificada con ENS</p>
-              <p>• Transparencia total en Lisk blockchain</p>
+              <p>Votación anónima con encriptación Zama</p>
+              <p>Identidad verificada con ENS</p>
+              <p>Transparencia total en Lisk blockchain</p>
             </div>
           </CardContent>
         </Card>
@@ -163,17 +163,7 @@ export default function BlockchainVotingSystem() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Shield className="h-8 w-8 text-primary" />
-                <h1 className="text-2xl font-bold text-foreground">VoteChain</h1>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline" className="text-primary">
-                  <Network className="h-3 w-3 mr-1" />
-                  Lisk Mainnet
-                </Badge>
-                <Badge variant="outline" className="text-green-600">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Zama Encrypted
-                </Badge>
+                <h1 className="text-2xl font-bold text-foreground">VoteCrypt</h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">

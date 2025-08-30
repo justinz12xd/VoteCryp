@@ -151,44 +151,6 @@ export default function AdminPanel() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Network className="h-5 w-5" />
-                <span>Estado de la Infraestructura Blockchain</span>
-              </CardTitle>
-              <CardDescription>Monitoreo en tiempo real de los componentes descentralizados</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                  <Network className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <div className="font-semibold text-green-700 dark:text-green-300">Lisk Blockchain</div>
-                  <div className="text-sm text-green-600 dark:text-green-400">Conectado</div>
-                  <div className="text-xs text-muted-foreground mt-1">Block: #2,847,392</div>
-                </div>
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <Lock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                  <div className="font-semibold text-blue-700 dark:text-blue-300">Zama Encryption</div>
-                  <div className="text-sm text-blue-600 dark:text-blue-400">Activo</div>
-                  <div className="text-xs text-muted-foreground mt-1">FHE Ready</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <Zap className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                  <div className="font-semibold text-purple-700 dark:text-purple-300">ENS Registry</div>
-                  <div className="text-sm text-purple-600 dark:text-purple-400">Sincronizado</div>
-                  <div className="text-xs text-muted-foreground mt-1">1,247 identidades</div>
-                </div>
-                <div className="text-center p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
-                  <Shield className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                  <div className="font-semibold text-orange-700 dark:text-orange-300">Vercel Deploy</div>
-                  <div className="text-sm text-orange-600 dark:text-orange-400">Optimizado</div>
-                  <div className="text-xs text-muted-foreground mt-1">Global CDN</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
                 <Plus className="h-5 w-5" />
                 <span>Crear Nueva Elección</span>
               </CardTitle>
