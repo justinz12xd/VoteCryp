@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,11 +10,19 @@ import WalletInfo from "@/features/shared/components/WalletInfo";
 import useWallet from "@/features/shared/useWallet";
 
 export function Navigation(): React.ReactNode {
+  // Determine current route; hooks must be called unconditionally
+  const pathname = usePathname();
+
   const {
     ensName = "",
     walletAddress = "",
     loading: walletLoading,
   } = useWallet();
+
+  // Hide global site header on dashboard/results pages to avoid double headers
+  if (pathname?.startsWith("/results")) {
+    return null;
+  }
 
   return (
     <header className="border-b bg-card" role="banner">
