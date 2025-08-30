@@ -26,7 +26,9 @@ func main() {
 	registerRoutes(app)
 
 	port := os.Getenv("PORT")
-	if port == "" { port = "8080" }
+	if port == "" {
+		port = "8080"
+	}
 	log.Printf("Go API listening on :%s", port)
 	log.Fatal(app.Listen(":" + port))
 }
