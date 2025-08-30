@@ -25,33 +25,26 @@ export function VotingFeature() {
 
   const { elections } = useElections();
 
-  const encryptVoteWithZama = async (
-    electionId: number,
-    candidateIndex: number
-  ) => {
-    setZamaEncrypting(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setZamaEncrypting(false);
-    return {
-      encryptedVote: `zama_encrypted_${candidateIndex}_${Date.now()}`,
-      liskTxHash: `0x${Math.random().toString(16).slice(2, 42)}`,
-      verified: true,
-    };
-  };
-
   const castVote = async (electionId: number, candidateIndex: number) => {
     try {
-      const encryptedVote = await encryptVoteWithZama(
-        electionId,
-        candidateIndex
-      );
-
-      if (encryptedVote.verified) {
-        setHasVoted((prev) => ({ ...prev, [electionId]: true }));
-        console.log(`Vote encrypted with Zama: ${encryptedVote.encryptedVote}`);
-        console.log(`Submitted to Lisk: ${encryptedVote.liskTxHash}`);
+      setZamaEncrypting(true);
+      // Backend route will handle register/login and encryption+submit
+      const cedula = "demo-voter";
+      const fingerprintCode = "demo-code";
+      const res = await fetch("/api/submit-vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ electionId, candidateIndex, cedula, fingerprintCode }),
+      });
+      const data = await res.json();
+      setZamaEncrypting(false);
+      if (!res.ok) {
+        console.error("submit vote failed", data);
+        return;
       }
+      setHasVoted((prev) => ({ ...prev, [electionId]: true }));
     } catch (error) {
+      setZamaEncrypting(false);
       console.error("Error casting vote:", error);
     }
   };

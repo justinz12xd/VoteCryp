@@ -58,6 +58,19 @@ export async function POST(req: NextRequest) {
     if (!token)
       return NextResponse.json({ error: "no token" }, { status: 500 });
 
+    // Ensure ENS is registered (idempotent on backend/contract)
+    const ensName = `${cedula}.eth`;
+  await fetch(`${GO_API_URL}/api/register-ens`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ ensName }),
+      cache: "no-store",
+    });
+    // ignore 409/502 here; proceed to submit vote either way
+
     // submit vote
     const submit = await fetch(`${GO_API_URL}/api/submitVote`, {
       method: "POST",
