@@ -1,16 +1,26 @@
-# VoteCryp Blockchain - Smart Contracts
+# VoteCryp Blockchain - Sistema Custodial
 
-Sistema de votación descentralizada con integración ENS y preparado para Zama FHE.
+Sistema de votación descentralizada con **wallets custodiales** para backend, integración ENS y preparado para Zama FHE.
 
-## 🎯 Funciones Principales Implementadas
+## �️ Arquitectura Custodial
 
-✅ **createElection(...)** - Crear nuevas elecciones
-✅ **vote(electionId, option)** - Emitir votos con control de unicidad
-✅ **closeElection(electionId)** - Cerrar elecciones
-✅ **getResults(electionId)** - Obtener resultados en tiempo real
-✅ **Control de unicidad ENS + dirección** - Prevenir double voting
+```
+👤 Usuario              💻 Backend              🔗 Blockchain
+(Cédula + Código)   →   (Wallet custodial)  →   (Smart Contract)
+```
 
-## 🚀 Setup Rápido
+**El backend maneja las wallets automáticamente. Los usuarios solo necesitan cédula + código.**
+
+## 🎯 Funciones del Smart Contract
+
+✅ **createElection(...)** - Crear nuevas elecciones  
+✅ **vote(electionId, option)** - Emitir votos con control de unicidad  
+✅ **closeElection(electionId)** - Cerrar elecciones  
+✅ **getResults(electionId)** - Obtener resultados en tiempo real  
+✅ **Control de unicidad ENS + dirección** - Prevenir double voting  
+✅ **API para backend custodial** - Manejo automático de wallets  
+
+## 🚀 Setup para Blockchain
 
 ### Opción 1: Script Automático (Windows)
 ```powershell
@@ -30,6 +40,9 @@ npm run compile
 
 # 4. Ejecutar tests
 npm test
+
+# 5. Test backend custodial
+node test-backend.js
 ```
 
 ## 🔧 Configuración para Deploy
@@ -84,43 +97,61 @@ REPORT_GAS=true npm test
 npm run coverage
 ```
 
-## 📋 Uso del Contrato
+## 📋 API para Backend Custodial
 
-### 1. Registrar ENS (Obligatorio para votar)
+### 🔧 Inicialización para Backend
 ```javascript
-await votingContract.registerENS("mi-nombre.eth");
+const BackendBlockchainAPI = require('./backend-blockchain-api.js');
+
+// 1. Generar wallet custodial para nuevo usuario
+const custodialWallet = BackendBlockchainAPI.generateCustodialWallet();
+// Guardar custodialWallet.privateKey encriptada en BD
+
+// 2. Inicializar API con wallet del usuario
+const userAPI = new BackendBlockchainAPI(userPrivateKey, 'liskSepolia');
+await userAPI.initialize();
 ```
 
-### 2. Crear Elección
+### 📝 Funciones para Backend
+
+#### 1. Registrar ENS Automáticamente
 ```javascript
-await votingContract.createElection(
+await userAPI.registerENSForUser("usuario12345.eth");
+```
+
+#### 2. Crear Elección (Admin)
+```javascript
+const result = await adminAPI.createElection(
   "Título de la Elección",
   "Descripción detallada",
-  ["Opción A", "Opción B", "Opción C"], // Opciones de voto
-  24, // Duración en horas
-  false // Habilitar FHE (false por ahora)
+  ["Opción A", "Opción B", "Opción C"],
+  24 // Duración en horas
 );
 ```
 
-### 3. Votar
+#### 3. Votar en Nombre del Usuario
 ```javascript
-const electionId = 1;
-const optionIndex = 0; // Votar por "Opción A"
-await votingContract.vote(electionId, optionIndex);
+await userAPI.voteForUser(electionId, optionIndex);
 ```
 
-### 4. Cerrar Elección
+#### 4. Obtener Resultados
 ```javascript
-await votingContract.closeElection(electionId);
+const results = await adminAPI.getResults(electionId);
 ```
 
-### 5. Obtener Resultados
+#### 5. Verificar si Usuario Ya Votó
 ```javascript
-const results = await votingContract.getResults(electionId);
-console.log("Título:", results.title);
-console.log("Total votos:", results.totalVotes.toString());
-console.log("Resultados:", results.voteCounts.map(v => v.toString()));
+const hasVoted = await userAPI.hasVoted(electionId, userAddress);
 ```
+
+## 🔐 Seguridad para Backend
+
+⚠️ **CRÍTICO para el backend:**
+- **Encriptar private keys** en base de datos
+- **Rate limiting** en todas las APIs
+- **Validación de cédulas** reales
+- **Logs de auditoría** completos
+- **Backup seguro** de wallets custodiales
 
 ## 🔐 Seguridad Implementada
 
@@ -160,70 +191,81 @@ function updateEncryptedResults(
 3. **Zama Service** → Procesa votos cifrados off-chain
 4. **Smart Contract** → Actualiza resultados mediante `updateEncryptedResults()`
 
-## 🔌 Integración con Frontend
+## 🔌 Flujo de Integración Backend
 
-### Conectar con ethers.js:
-```javascript
-import { ethers } from 'ethers';
-import VotingContractABI from './contracts/VotingContract.json';
-
-const CONTRACT_ADDRESS = "0x..."; // Dirección del deploy
-const provider = new ethers.providers.Web3Provider(window.ethereum);
-const signer = provider.getSigner();
-
-const votingContract = new ethers.Contract(
-  CONTRACT_ADDRESS,
-  VotingContractABI.abi,
-  signer
-);
-
-// Usar las funciones del contrato
-await votingContract.registerENS("usuario.eth");
-await votingContract.createElection(...);
+### 1. **Registro de Usuario**
+```
+Usuario → Backend: POST /register { cedula, codigo }
+Backend → Blockchain: generateCustodialWallet()
+Backend → BD: guardar privateKey encriptada
+Backend → Blockchain: registerENSForUser()
 ```
 
-## 📝 Eventos para el Frontend
-
-El contrato emite eventos para que el frontend pueda escuchar:
-
-```javascript
-// Escuchar nueva elección
-votingContract.on("ElectionCreated", (electionId, title, creator, startTime, endTime) => {
-  console.log(`Nueva elección: ${title} (ID: ${electionId})`);
-});
-
-// Escuchar nuevo voto
-votingContract.on("VoteCast", (electionId, voter, ensName, optionIndex, timestamp) => {
-  console.log(`Nuevo voto en elección ${electionId} por ${ensName}`);
-});
-
-// Escuchar cierre de elección
-votingContract.on("ElectionClosed", (electionId, totalVotes, timestamp) => {
-  console.log(`Elección ${electionId} cerrada con ${totalVotes} votos`);
-});
+### 2. **Votación**
 ```
+Usuario → Backend: POST /vote { cedula, codigo, electionId, option }
+Backend → BD: obtener privateKey del usuario
+Backend → Blockchain: voteForUser(electionId, option)
+```
+
+### 3. **Consulta de Resultados**
+```
+Usuario → Backend: GET /results/electionId
+Backend → Blockchain: getResults(electionId)
+Backend → Usuario: resultados formateados
+```
+
+## 📱 Testing Backend Custodial
+
+```bash
+# Test completo del sistema custodial
+node test-backend.js
+```
+
+**✅ El test verifica:**
+- Generación de wallets custodiales
+- Registro ENS automático
+- Votación en nombre del usuario
+- Prevención de double voting
+- Consulta de resultados
+
+## 🎯 Para el Equipo Backend
+
+### Archivos principales:
+- **`backend-blockchain-api.js`** - API completa para backend
+- **`BACKEND_INTEGRATION.md`** - Documentación detallada
+- **`test-backend.js`** - Tests del sistema custodial
+- **`RESUMEN_BACKEND_CUSTODIAL.md`** - Resumen ejecutivo
 
 ## 🐛 Troubleshooting
 
 ### Error: "insufficient funds for intrinsic transaction cost"
-- Necesitas testnet ETH en tu wallet
-- Usa los faucets mencionados arriba
+- El backend necesita ETH en las wallets custodiales
+- Usa los faucets mencionados arriba para fundear wallets
 
 ### Error: "nonce too high"
-- Reset tu wallet: Configuración → Avanzado → Resetear cuenta
+- Resetea la wallet en MetaMask: Configuración → Avanzado → Resetear cuenta
 
 ### Error: "execution reverted"
-- Verifica que tengas ENS registrado antes de votar
+- Verifica que el ENS esté registrado antes de votar
 - Verifica que la elección esté activa
-- Revisa que no hayas votado ya
+- Revisa que el usuario no haya votado ya
 
-## 🤝 Para el Frontend
+### Error: "Contract not deployed"
+- Ejecuta `npm run deploy` o `npm run deploy:lisk`
 
-Una vez deployado el contrato, necesitarás:
+## 🤝 Para el Equipo
 
-1. **Dirección del contrato**: Se mostrará después del deploy
-2. **ABI del contrato**: Se genera en `artifacts/contracts/VotingContract.sol/VotingContract.json`
-3. **Chain ID**: 4202 para Lisk Sepolia, 11155111 para Ethereum Sepolia
+### **Backend Developer necesita:**
+1. **`backend-blockchain-api.js`** - API principal
+2. **Configuración de red** - En `contract-config.js`
+3. **Address del contrato** - Después del deploy
+4. **Documentación** - En `BACKEND_INTEGRATION.md`
+
+### **Frontend Developer necesita:**
+1. **API REST del backend** - Para login con cédula
+2. **No necesita** conexión directa a blockchain
+3. **No necesita** MetaMask ni wallets
 
 ## 📈 Próximas Mejoras
 
