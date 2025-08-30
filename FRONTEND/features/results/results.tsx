@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -18,13 +19,14 @@ import {
   TrendingUp,
   Users,
   Vote,
+  Network,
 } from "lucide-react";
 import Link from "next/link";
 import { useElections } from "../shared";
 import type { Election } from "../shared/types";
 
 export default function DashboardFeature() {
-  const { elections } = useElections();
+  const { elections, refetch } = useElections();
   const totalVotes = elections.reduce(
     (sum, election) => sum + election.totalVotes,
     0
@@ -33,7 +35,29 @@ export default function DashboardFeature() {
   const completedElections = elections.filter(
     (e) => e.status === "completed"
   ).length;
+  const [goResults, setGoResults] = useState<any>(null);
+  const [loadingGo, setLoadingGo] = useState(false);
+  const [goErr, setGoErr] = useState<string | null>(null);
 
+  async function fetchGoResults() {
+    try {
+      setLoadingGo(true);
+      setGoErr(null);
+      const res = await fetch("/api/go-results", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Failed to load");
+      setGoResults(data);
+    } catch (e: any) {
+      setGoErr(e?.message || "Error");
+    } finally {
+      setLoadingGo(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchGoResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* HEADER */}
@@ -85,7 +109,7 @@ export default function DashboardFeature() {
             },
           ].map((stat, i) => (
             <Card
-              key={i}
+              key={`${stat.label}-${i}`}
               className="p-6 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl"
             >
               <CardContent className="flex items-center gap-3">
@@ -108,6 +132,22 @@ export default function DashboardFeature() {
             <p className="text-muted-foreground">
               Transparent results verifiable on Lisk blockchain
             </p>
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  refetch?.();
+                  fetchGoResults();
+                }}
+                disabled={loadingGo}
+              >
+                Refresh results
+              </Button>
+              {loadingGo && (
+                <span className="text-xs text-muted-foreground">Updating…</span>
+              )}
+            </div>
           </div>
 
           <div className="grid gap-8">
@@ -203,6 +243,26 @@ export default function DashboardFeature() {
                       <CheckCircle2 className="h-3 w-3" />
                       Verified on Blockchain
                     </Badge>
+                  </div>
+                  {/* Decrypted results (Go API) */}
+                  <div className="space-y-2">
+                    <h4 className="font-semibold flex items-center">
+                      <Network className="h-4 w-4 mr-2 text-primary" />
+                      Go API Tally (decrypted)
+                    </h4>
+                    {goErr && (
+                      <div className="text-xs text-red-600">{goErr}</div>
+                    )}
+                    {(() => {
+                      let text = "No data";
+                      if (loadingGo) text = "Loading…";
+                      if (goResults) text = JSON.stringify(goResults, null, 2);
+                      return (
+                        <pre className="text-xs bg-muted/60 p-3 rounded max-h-56 overflow-auto">
+                          {text}
+                        </pre>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>
