@@ -83,6 +83,21 @@ app.get("/getEncryptedResults", async (_req, res) => {
 });
 
 // ============ Admin endpoints ============
+// POST /registerENS { ensName }
+app.post("/registerENS", async (req, res) => {
+  try {
+    const { ensName } = req.body || {};
+    if (!ensName || typeof ensName !== "string") {
+      return res.status(400).json({ error: "invalid body" });
+    }
+    const tx = await contract.registerENS(ensName);
+    const receipt = await tx.wait();
+    res.json({ txHash: receipt.hash, ensName });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "register failed" });
+  }
+});
 // POST /createElection { title, description, options: string[], durationHours: number, enableFHE?: boolean }
 app.post("/createElection", async (req, res) => {
   try {
