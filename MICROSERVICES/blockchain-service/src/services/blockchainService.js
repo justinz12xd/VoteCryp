@@ -31,6 +31,40 @@ export class BlockchainService {
     };
   }
 
+  async submitVoteWithPK({ electionId, encryptedVote, privateKey }) {
+    if (!electionId || !encryptedVote || !privateKey)
+      throw Object.assign(new Error("invalid body"), { status: 400 });
+    const { ethers } = await import("ethers");
+    const provider = this.contract.runner?.provider || this.contract.provider;
+    const serviceSigner = this.contract.runner;
+    const userSigner = new ethers.Wallet(privateKey, provider);
+
+    // Auto-fund user if needed (useful on Hardhat)
+    try {
+      const min = ethers.parseEther("0.1");
+      const bal = await provider.getBalance(userSigner.address);
+      if (bal < min && serviceSigner?.sendTransaction) {
+        const fundTx = await serviceSigner.sendTransaction({
+          to: userSigner.address,
+          value: ethers.parseEther("1.0"),
+        });
+        await fundTx.wait();
+      }
+    } catch {}
+
+    const parts = String(encryptedVote).split("_");
+    const optionIndex = Number(parts[3]) || 0;
+    const userContract = this.contract.connect(userSigner);
+    const tx = await userContract.vote(electionId, optionIndex);
+    const receipt = await tx.wait();
+    this.encryptedVotes.push({ electionId, encryptedVote });
+    return {
+      txHash: receipt.hash,
+      blockNumber: Number(receipt.blockNumber),
+      confirmed: true,
+    };
+  }
+
   async getEncryptedResults() {
     return {
       encryptedResults: this.encryptedVotes.map((v) => v.encryptedVote),
