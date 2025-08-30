@@ -7,6 +7,8 @@ export function buildRoutes(ctrl) {
   r.post("/submitVote", ctrl.submitVote);
   r.get("/getEncryptedResults", ctrl.getEncryptedResults);
   r.post("/createElection", ctrl.createElection);
+  // Helper endpoint for quick testing without JSON body
+  r.get("/createElectionQuick", ctrl.createElectionQuick);
   r.post("/closeElection", ctrl.closeElection);
   r.get("/activeElections", ctrl.activeElections);
   r.get("/electionInfo", ctrl.electionInfo);
