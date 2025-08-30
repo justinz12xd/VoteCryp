@@ -143,6 +143,15 @@ func SubmitVoteHandler(c *fiber.Ctx) error {
 		return c.Status(409).JSON(fiber.Map{"error": "already voted"})
 	}
 
+	// 0) ensure ENS verified for the wallet
+	ensURLBase := resolveServiceURL("BLOCKCHAIN_SERVICE_URL", "BLOCKCHAIN_GET_ENS_URL", "http://localhost:4002/getENSVoter", "getENSVoter")
+	ensURL := fmt.Sprintf("%s?address=%s", strings.TrimRight(ensURLBase, "/"), url.QueryEscape(u.Wallet.Address))
+	if ensData, status, err := httpJSONGet(ensURL); err == nil && status == 200 {
+		if v, ok := ensData["isVerified"].(bool); !ok || !v {
+			return c.Status(412).JSON(fiber.Map{"error": "ens not verified", "hint": "call /api/register-ens first"})
+		}
+	}
+
 	// 1) encrypt vote via encryption microservice
 	encryptURL := resolveServiceURL("ENCRYPTION_SERVICE_URL", "ENCRYPTION_URL", "http://localhost:4001/encryptVote", "encryptVote")
 	payload := fmt.Sprintf(`{"candidateIndex": %d, "electionId":"%s"}`, req.CandidateIdx, req.ElectionID)
