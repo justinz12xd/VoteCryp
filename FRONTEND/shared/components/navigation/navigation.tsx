@@ -39,9 +39,6 @@ export function Navigation(): React.ReactNode {
               <Link href="/results">
                 <Button variant="outline">See results</Button>
               </Link>
-              <Link href="/voting">
-                <Button variant="outline">Vote now</Button>
-              </Link>
             </div>
           </nav>
         </div>
